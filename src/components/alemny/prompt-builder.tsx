@@ -29,8 +29,8 @@ import {
   type BuilderIcon,
 } from "@/lib/alemny/builder";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { BRAND_IMAGE_SIGNATURE, BRAND_TEXT_SIGNATURE } from "@/lib/alemny/signature";
+import { SignaturePanel, PromptPreviewEditor } from "./prompt-copy-kit";
+import { composePromptCopy } from "@/lib/alemny/signature";
 
 const FIELD_ICONS: Record<BuilderIcon, typeof BookOpen> = {
   book: BookOpen,
@@ -49,31 +49,13 @@ const INITIAL_FORM: BuilderFormState = {
   extra: "",
 };
 
-/**
- * النص النقي للنسخ من المختبر:
- * إزالة أسطر الفواصل الزخرفية (─ ━) وسطري الترويسة والتوقيع الترويجي القديم —
- * توقيع المنصة الرسمي يُضاف بدلًا منهما عند تفعيل المفتاح.
- */
-function pureBuilderPrompt(raw: string): string {
-  return raw
-    .split("\n")
-    .filter((line) => {
-      const t = line.trim();
-      if (!t) return true;
-      if (/^[─━]+$/.test(t)) return false; // فواصل زخرفية
-      if (t.includes("علّمني تِك") || /^[🧠✦]/u.test(t)) return false; // ترويسة/توقيع تسويقي
-      return true;
-    })
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
 export function PromptBuilder() {
   const [form, setForm] = useState<BuilderFormState>(INITIAL_FORM);
   const [output, setOutput] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  /* مسودة المستخدم — تعديل حر للبرومبت الناتج قبل النسخ */
+  const [draft, setDraft] = useState<string | null>(null);
   /* توقيع علّمني تِك عند النسخ — مفعّل افتراضيًّا */
   const [includeSignature, setIncludeSignature] = useState(true);
 
@@ -97,16 +79,17 @@ export function PromptBuilder() {
     /* تأخير قصير لإحساس التوليد الفعلي */
     setTimeout(() => {
       setOutput(generateBuilderPrompt(form));
+      setDraft(null);
       setGenerating(false);
     }, 550);
   };
 
   const onCopy = async () => {
     if (!output) return;
-    /* نسخ نقي: البرومبت الهندسي المجمع بلا فواصل زخرفية + التوقيع المناسب عند التفعيل */
-    const pure = pureBuilderPrompt(output);
-    const text = includeSignature ? `${pure}\n\n${isImageMode ? BRAND_IMAGE_SIGNATURE : BRAND_TEXT_SIGNATURE}` : pure;
-    const ok = await copyText(text);
+    /* نسخ نقي ١٠٠٪: النص المعروض بعد التعقيم + التوقيع المناسب (نصي/بصري) عند التفعيل فقط */
+    const ok = await copyText(
+      composePromptCopy(draft ?? output, isImageMode, includeSignature),
+    );
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -242,6 +225,7 @@ export function PromptBuilder() {
                   onClick={() => {
                     setForm(INITIAL_FORM);
                     setOutput(null);
+                    setDraft(null);
                   }}
                   className="glass-soft glass-hover flex h-13 w-13 items-center justify-center rounded-2xl text-alemny-muted hover:text-white"
                   aria-label="إعادة تعيين المختبر"
@@ -284,25 +268,21 @@ export function PromptBuilder() {
                 </motion.div>
               ) : output ? (
                 <motion.div key="output" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col">
-                  <div
+                  <PromptPreviewEditor
+                    value={draft ?? output}
+                    onChange={setDraft}
                     dir="rtl"
-                    className="mb-4 max-h-[460px] flex-1 overflow-y-auto whitespace-pre-wrap break-words rounded-2xl border border-alemny-purple/25 bg-black/45 p-5 font-body text-[13.5px] leading-8 text-alemny-muted"
-                  >
-                    {output}
-                  </div>
-                  {/* مفتاح توقيع المنصة عند النسخ */}
-                  <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
-                      <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
-                    </span>
-                    <Switch
-                      checked={includeSignature}
-                      onCheckedChange={setIncludeSignature}
-                      aria-label="توقيع علّمني تِك عند النسخ"
-                      className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
-                    />
-                  </div>
+                    isImage={isImageMode}
+                    signatureOn={includeSignature}
+                    minHeightClass="min-h-[260px]"
+                    ariaLabel="البرومبت الهندسي الناتج — قابل للتعديل قبل النسخ"
+                  />
+                  <SignaturePanel
+                    isImage={isImageMode}
+                    checked={includeSignature}
+                    onChange={setIncludeSignature}
+                    className="mb-3 mt-3"
+                  />
                   <button
                     type="button"
                     onClick={onCopy}
@@ -310,7 +290,7 @@ export function PromptBuilder() {
                     aria-live="polite"
                   >
                     {copied ? <Check className="h-5 w-5" aria-hidden /> : <Copy className="h-4.5 w-4.5" aria-hidden />}
-                    {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الهندسي كاملًا"}
+                    {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الصافي"}
                   </button>
                 </motion.div>
               ) : (

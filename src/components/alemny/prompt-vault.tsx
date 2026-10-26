@@ -24,12 +24,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { SectionHeading } from "./section-heading";
 import { PromptIconGlyph, ModelBadge } from "./icons";
+import { SignaturePanel, PromptPreviewEditor } from "./prompt-copy-kit";
 import { copyText } from "@/lib/alemny/clipboard";
 import { arNum } from "@/lib/alemny/format";
-import { buildPurePrompt } from "@/lib/alemny/signature";
+import { composePromptCopy, isImagePrompt } from "@/lib/alemny/signature";
 import { useAlemnyStore } from "@/lib/alemny/store";
 import {
   PROMPT_CATEGORIES,
@@ -223,8 +223,10 @@ function PromptCard({
   const categoryLabel = PROMPT_CATEGORIES.find((c) => c.id === prompt.category)?.label ?? "";
 
   const onQuickCopy = async () => {
-    /* نسخ نقي: نص البرومبت فقط (بلا فواصل أو شرح) + توقيع المنصة عند التفعيل */
-    const ok = await copyText(buildPurePrompt(prompt.body, prompt.category, includeSignature));
+    /* نسخ نقي ١٠٠٪: نص البرومبت الخالص فقط (بلا فواصل أو نصوص واجهة) + توقيع المنصة عند التفعيل */
+    const ok = await copyText(
+      composePromptCopy(prompt.body, isImagePrompt(prompt.category), includeSignature),
+    );
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -308,19 +310,13 @@ function PromptCard({
         </p>
       )}
 
-      {/* مفتاح توقيع المنصة عند النسخ */}
-      <div className="relative z-10 mb-2.5 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-1.5">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
-          <span className="text-xs leading-5 text-white/60">توقيع علَّمني تِك عند النسخ</span>
-        </span>
-        <Switch
-          checked={includeSignature}
-          onCheckedChange={onToggleSignature}
-          aria-label="توقيع علَّمني تِك عند النسخ"
-          className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
-        />
-      </div>
+      {/* مفتاح توقيع المنصة عند النسخ — بالنص الإلزامي (نصّي أو بصري حسب النوع) */}
+      <SignaturePanel
+        isImage={isImagePrompt(prompt.category)}
+        checked={includeSignature}
+        onChange={onToggleSignature}
+        className="relative z-10 mb-2.5"
+      />
 
       {/* أزرار الإجراء — نسخ سريع + تخصيص كامل */}
       <div className="relative z-10 mt-auto grid gap-2.5">
@@ -341,7 +337,7 @@ function PromptCard({
           aria-live="polite"
         >
           {copied ? <Check className="h-4.5 w-4.5" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
-          {copied ? "تم النسخ بنجاح!" : "نسخ سريع للنص الأصلي"}
+          {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الصافي"}
         </button>
       </div>
     </motion.article>
@@ -363,6 +359,8 @@ function CustomizeModal({
 }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
+  /* مسودة المستخدم — تعديل حر للنص قبل النسخ (null = النص المولَّد تلقائيًّا) */
+  const [draft, setDraft] = useState<string | null>(null);
 
   /* تصفير القيم عند فتح برومبت مختلف — تعديل أثناء التصيير */
   const [prevPromptId, setPrevPromptId] = useState<string | undefined>(prompt?.id);
@@ -370,6 +368,7 @@ function CustomizeModal({
     setPrevPromptId(prompt?.id);
     setValues({});
     setCopied(false);
+    setDraft(null);
   }
 
   const finalPrompt = useMemo(() => {
@@ -382,22 +381,15 @@ function CustomizeModal({
     return out;
   }, [prompt, values]);
 
-  const segments = useMemo(() => {
-    if (!prompt) return [];
-    return prompt.body.split(/(\{\{\w+\}\})/g).map((part) => {
-      const match = part.match(/^\{\{(\w+)\}\}$/);
-      if (match) {
-        const v = prompt.variables.find((x) => x.key === match[1]);
-        return { type: "var" as const, key: match[1], label: v?.label ?? match[1], value: values[match[1]]?.trim() ?? "" };
-      }
-      return { type: "text" as const, text: part };
-    });
-  }, [prompt, values]);
+  /* النص المعروض في المحرّر: مسودة المستخدم إن عدّل، وإلا البرومبت المولَّد */
+  const displayedPrompt = draft ?? finalPrompt;
 
   const onCopy = async () => {
     if (!prompt) return;
     /* نسخ نقي: البرومبت المخصَّص فقط بلا فواصل زخرفية + توقيع المنصة عند التفعيل */
-    const ok = await copyText(buildPurePrompt(finalPrompt, prompt.category, includeSignature));
+    const ok = await copyText(
+      composePromptCopy(displayedPrompt, isImagePrompt(prompt.category), includeSignature),
+    );
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -471,7 +463,10 @@ function CustomizeModal({
                       <input
                         type="text"
                         value={values[v.key] ?? ""}
-                        onChange={(e) => setValues((prev) => ({ ...prev, [v.key]: e.target.value }))}
+                        onChange={(e) => {
+                          setValues((prev) => ({ ...prev, [v.key]: e.target.value }));
+                          setDraft(null); /* تغيير المتغيرات يعيد توليد النص */
+                        }}
                         placeholder={v.placeholder}
                         className="glass-input w-full min-h-[48px] text-base placeholder:text-white/30"
                       />
@@ -486,32 +481,18 @@ function CustomizeModal({
               </div>
             )}
 
-            {/* معاينة حية كاملة */}
+            {/* معاينة حية قابلة للتعديل + شارة التوقيع البنفسجية */}
             <div className="mb-5">
-              <p className="mb-2 text-[13px] font-bold text-white">المعاينة الحية — جاهزة للنسخ:</p>
-              <div
+              <p className="mb-2 text-[13px] font-bold text-white">المعاينة الحية — عدّل أي كلمة قبل النسخ:</p>
+              <PromptPreviewEditor
+                value={displayedPrompt}
+                onChange={(v) => setDraft(v)}
                 dir={prompt.ltr ? "ltr" : "rtl"}
-                className="max-h-72 overflow-y-auto rounded-2xl border border-alemny-purple/25 bg-black/50 p-5"
-              >
-                <p className="whitespace-pre-wrap text-[13px] leading-7 text-alemny-muted" style={{ textAlign: prompt.ltr ? "left" : "right" }}>
-                  {segments.map((seg, i) =>
-                    seg.type === "text" ? (
-                      <span key={i}>{seg.text}</span>
-                    ) : seg.value ? (
-                      <span key={i} className="var-filled" title={seg.label}>
-                        {seg.value}
-                      </span>
-                    ) : (
-                      <span key={i} className="var-slot" title={seg.label}>
-                        {seg.label}
-                      </span>
-                    ),
-                  )}
-                </p>
-              </div>
-              {includeSignature && (
-                <p className="mt-2 text-xs text-white/45">✨ سيُضاف توقيع علّمني تِك تلقائيًّا في نهاية النص المنسوخ</p>
-              )}
+                isImage={isImagePrompt(prompt.category)}
+                signatureOn={includeSignature}
+                minHeightClass="min-h-[240px]"
+                ariaLabel="نص البرومبت المخصّص — قابل للتعديل بحرية قبل النسخ"
+              />
             </div>
 
             {/* نصائح الخبراء */}
@@ -526,22 +507,13 @@ function CustomizeModal({
               </div>
             )}
 
-            {/* مفتاح توقيع المنصة عند النسخ */}
-            <div className="mb-2.5 flex min-h-[44px] items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-1.5">
-              <span className="flex min-w-0 items-center gap-2">
-                <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
-                <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
-              </span>
-              <Switch
-                checked={includeSignature}
-                onCheckedChange={onToggleSignature}
-                aria-label="توقيع علّمني تِك عند النسخ"
-                className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
-              />
-            </div>
-            <p className="mb-4 text-xs leading-5 text-white/45">
-              يُضاف توقيع المنصة وروابط المتابعة في نهاية النص المنسوخ — ويمكنك إيقافه بضغطة واحدة
-            </p>
+            {/* مفتاح التوقيع الشفاف — بالنص الإلزامي للمواصفة */}
+            <SignaturePanel
+              isImage={isImagePrompt(prompt.category)}
+              checked={includeSignature}
+              onChange={onToggleSignature}
+              className="mb-4"
+            />
 
             {/* زر النسخ الرئيسي */}
             <button
@@ -553,7 +525,7 @@ function CustomizeModal({
               aria-live="polite"
             >
               {copied ? <Check className="h-5 w-5" aria-hidden /> : <Copy className="h-5 w-5" aria-hidden />}
-              {copied ? "تم النسخ بنجاح — بالتوفيق!" : "نسخ البرومبت المخصَّص بالكامل"}
+              {copied ? "تم النسخ بنجاح — بالتوفيق!" : "نسخ البرومبت الصافي المخصَّص"}
             </button>
           </div>
         )}

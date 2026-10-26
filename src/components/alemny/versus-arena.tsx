@@ -18,11 +18,11 @@ import {
   Sparkles,
   Swords as VsIcon,
 } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { SignaturePanel, PromptPreviewEditor } from "./prompt-copy-kit";
 import { SectionHeading } from "./section-heading";
 import { arDigits } from "@/lib/alemny/format";
 import { copyText } from "@/lib/alemny/clipboard";
-import { BRAND_TEXT_SIGNATURE } from "@/lib/alemny/signature";
+import { composePromptCopy, sanitizePurePrompt } from "@/lib/alemny/signature";
 import { ARENA_MODELS_META, type VersusMission } from "@/lib/alemny/versus";
 import { missionChallengePrompt, useAlemnyStore } from "@/lib/alemny/store";
 
@@ -221,13 +221,22 @@ function ChallengePromptBox({
   onToggleSignature: (v: boolean) => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const prompt = useMemo(() => missionChallengePrompt(mission), [mission]);
+  /* مسودة المستخدم — تعديل حر للنص قبل النسخ */
+  const [draft, setDraft] = useState<string | null>(null);
+  /* تعقيم النص القادم من القاعدة: إزالة أي فواصل أو نصوص واجهة قديمة */
+  const prompt = useMemo(() => sanitizePurePrompt(missionChallengePrompt(mission)), [mission]);
+
+  /* إعادة تصفير المسودة عند تغيير المهمة */
+  const [prevMissionId, setPrevMissionId] = useState(mission.id);
+  if (mission.id !== prevMissionId) {
+    setPrevMissionId(mission.id);
+    setDraft(null);
+    setCopied(false);
+  }
 
   const onCopy = async () => {
-    /* نسخ نقي: برومبت التحدي بلا فواصل زخرفية + توقيع المنصة عند التفعيل */
-    const pure = prompt.replace(/─+/g, "").trim();
-    const text = includeSignature ? `${pure}\n\n${BRAND_TEXT_SIGNATURE}` : pure;
-    const ok = await copyText(text);
+    /* نسخ نقي ١٠٠٪: النص المعروض بعد التعقيم + التوقيع عند التفعيل فقط */
+    const ok = await copyText(composePromptCopy(draft ?? prompt, false, includeSignature));
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -253,28 +262,29 @@ function ChallengePromptBox({
           aria-live="polite"
         >
           {copied ? <Check className="h-4.5 w-4.5" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
-          {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الموحد"}
+          {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الصافي"}
         </button>
       </div>
-      {/* مفتاح توقيع المنصة عند النسخ */}
-      <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
-          <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
-        </span>
-        <Switch
-          checked={includeSignature}
-          onCheckedChange={onToggleSignature}
-          aria-label="توقيع علّمني تِك عند النسخ"
-          className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
-        />
-      </div>
-      <pre
+      {/* مفتاح التوقيع الشفاف — بالنص الإلزامي للبرومبتات النصية */}
+      <PromptPreviewEditor
+        value={draft ?? prompt}
+        onChange={setDraft}
         dir="rtl"
-        className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/50 p-4 font-body text-[12.5px] leading-7 text-alemny-muted"
-      >
-        {prompt}
-      </pre>
+        isImage={false}
+        signatureOn={includeSignature}
+        minHeightClass="min-h-[170px]"
+        ariaLabel="برومبت التحدي الموحد — قابل للتعديل قبل النسخ"
+      />
+      <SignaturePanel
+        isImage={false}
+        checked={includeSignature}
+        onChange={onToggleSignature}
+        className="mt-3"
+      />
+      <p className="mt-2 flex items-start gap-1.5 text-[11.5px] leading-5 text-white/45">
+        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
+        نصيحة: الصق نفس البرومبت في Gemini ثم Claude ثم ChatGPT، واحكم بنفسك على: عمق الحل، الالتزام بالصيغة، ودقة الأمثلة — ثم اعتمد الفائز لمهمتك.
+      </p>
     </div>
   );
 }

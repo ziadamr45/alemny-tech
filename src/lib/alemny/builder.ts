@@ -303,8 +303,11 @@ export interface BuilderFormState {
   extra: string;
 }
 
-const SECTION_DIVIDER = "━━━━━━━━━━━━━━━━━━━━━━━━━━";
-
+/**
+ * يولّد «purePromptText» خالصًا ١٠٠٪: برومبت هندسي موجّه للنموذج مباشرة —
+ * بلا فواصل زخرفية (━━) وبلا ترويسة أو تذييل تسويقي من المنصة.
+ * (توقيع علّمني تِك الرسمي يُضاف عند النسخ حسب مفتاح المستخدم — انظر signature.ts)
+ */
 export function generateBuilderPrompt(form: BuilderFormState): string {
   const field = BUILDER_FIELDS.find((f) => f.id === form.fieldId) ?? BUILDER_FIELDS[0];
   const goal = field.goals.find((g) => g.id === form.goalId) ?? field.goals[0];
@@ -327,11 +330,7 @@ export function generateBuilderPrompt(form: BuilderFormState): string {
     .map((c) => `- ${c}`)
     .join("\n");
 
-  return `${SECTION_DIVIDER}
-🧠 برومبت هندسي مُولَّد من علَّمني تِك
-${SECTION_DIVIDER}
-
-┃ الدور (Role)
+  return `┃ الدور (Role)
 تصرَّف كـ${goal.role}، بخبرة عملية موثقة في تحويل الطلبات الغامضة إلى مخرجات ملموسة تُقاس بالنتيجة.
 
 ┃ السياق (Context)
@@ -349,11 +348,5 @@ ${constraints}
 
 ┃ صيغة المخرجات (Output Format)
 ${goal.output}
-استخدم عناوين واضحة لكل قسم، وجداول Markdown عند تعدد العناصر، واجعل المخرج جاهزًا للنسخ والاستخدام دون إعادة تنسيق.
-
-${SECTION_DIVIDER}
-✦ صُنع في مختبر البرومبتات — علَّمني تِك ${BRAND_HANDLE}
-${SECTION_DIVIDER}`;
+استخدم عناوين واضحة لكل قسم، وجداول Markdown عند تعدد العناصر، واجعل المخرج جاهزًا للنسخ والاستخدام دون إعادة تنسيق.`;
 }
-
-const BRAND_HANDLE = "@alemnytech";
