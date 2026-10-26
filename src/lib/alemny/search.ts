@@ -7,6 +7,7 @@ import { MAGIC_PROMPTS, PROMPT_CATEGORIES } from "./prompts";
 import { AI_TOOLS, TOOL_CATEGORIES } from "./tools";
 import { TUTORIALS } from "./tutorials";
 import { ARTICLES, ARTICLE_CATEGORIES } from "./articles";
+import { arNum } from "./format";
 import type { MagicPrompt } from "./prompts";
 import type { AITool } from "./tools";
 import type { Tutorial } from "./tutorials";
@@ -49,6 +50,11 @@ export function filterSearchItems(items: SearchItem[], query: string): SearchIte
   return items.filter((item) => matches(item, query));
 }
 
+/** المقالات والشروحات تفتح صفحاتها المستقلة: صف قاعدة البيانات يستخدم slug والاحتياطي يستخدم id */
+function detailHref(base: string, item: { id: string; slug?: string }): string {
+  return `/${base}/${item.slug ?? item.id}`;
+}
+
 export function buildSearchIndex(
   prompts: MagicPrompt[] = MAGIC_PROMPTS,
   tools: AITool[] = AI_TOOLS,
@@ -77,8 +83,8 @@ export function buildSearchIndex(
     id: `tutorial-${t.id}`,
     kind: "tutorial" as const,
     title: t.title,
-    subtitle: `شرح عملي — ${t.steps.length} خطوات • ${t.duration}`,
-    href: `/tutorials?focus=${t.id}`,
+    subtitle: `شرح عملي — ${arNum(t.steps.length)} خطوات • ${t.duration}`,
+    href: detailHref("tutorials", t),
     keywords: t.keywords,
   }));
 
@@ -87,7 +93,7 @@ export function buildSearchIndex(
     kind: "article" as const,
     title: a.title,
     subtitle: `مقال — ${ARTICLE_CATEGORIES.find((c) => c.id === a.category)?.label ?? ""}`,
-    href: `/articles?focus=${a.id}`,
+    href: detailHref("articles", a),
     keywords: a.keywords,
   }));
 

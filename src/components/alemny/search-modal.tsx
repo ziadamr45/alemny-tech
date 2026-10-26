@@ -58,7 +58,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="glass top-[14%] max-w-xl translate-y-0 gap-0 overflow-hidden rounded-2xl border-alemny-purple/40 bg-[#0C0916]/95 p-0 shadow-[0_24px_80px_-16px_rgba(128,70,233,0.55)] sm:top-[12%]"
+        className="glass top-[14%] w-[calc(100vw-2rem)] max-w-xl translate-y-0 gap-0 overflow-hidden rounded-2xl border-alemny-purple/40 bg-[#0C0916]/95 p-0 shadow-[0_24px_80px_-16px_rgba(128,70,233,0.55)] sm:top-[12%] sm:w-full"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">البحث الفوري في كل محتوى المنصة</DialogTitle>
@@ -72,8 +72,8 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
             <CommandInput
               value={query}
               onValueChange={setQuery}
-              placeholder="ابحث عن برومبت، أداة، أو شرح... (مثال: NotebookLM)"
-              className="h-9 flex-1 border-0 bg-transparent font-body text-[15px] text-white placeholder:text-white/35 focus:ring-0"
+              placeholder="ابحث عن برومبت، أداة، أو شرح... (مثال: مذاكرة)"
+              className="h-12 flex-1 border-0 bg-transparent font-body text-base text-white placeholder:text-white/35 focus:ring-0"
             />
             <kbd className="hidden shrink-0 rounded-md border border-alemny-purple/40 bg-[#120E22] px-2 py-1 font-en text-[10px] text-alemny-muted sm:inline-block">
               ESC
@@ -85,7 +85,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <CommandEmpty className="py-10 text-center">
                 <p className="text-sm font-semibold text-white">لا توجد نتائج مطابقة لـ «{query}»</p>
                 <p className="mt-1.5 text-xs text-alemny-muted">
-                  جرّب كلمات مثل: مذاكرة، برومبت، Claude، فيديو، سيرة ذاتية...
+                  جرّب كلمات مثل: مذاكرة، برومبت، تصميم، فيديو، سيرة ذاتية...
                 </p>
               </CommandEmpty>
             )}
@@ -157,29 +157,29 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
               <CommandItem
                 value="youtube-channel"
                 onSelect={() => window.open(SOCIALS[0].url, "_blank", "noopener")}
-                className="gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
+                className="min-h-[48px] gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF3B3B]/15 text-[#FF5B5B]">
                   <Youtube className="h-4 w-4" aria-hidden />
                 </span>
                 <span className="flex-1">قناة علَّمني تِك على يوتيوب</span>
-                <span className="font-en text-[10px] text-alemny-muted">{BRAND.handle}</span>
+                <span dir="ltr" className="inline-block font-mono text-[10px] text-alemny-muted">{BRAND.handle}</span>
               </CommandItem>
               <CommandItem
                 value="email"
                 onSelect={() => window.open(`mailto:${BRAND.email}`, "_self")}
-                className="gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
+                className="min-h-[48px] gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-alemny-purple/15 text-alemny-lilac">
                   <Mail className="h-4 w-4" aria-hidden />
                 </span>
                 <span className="flex-1">راسلنا عبر البريد الرسمي</span>
-                <span className="font-en text-[10px] text-alemny-muted">{BRAND.email}</span>
+                <span dir="ltr" className="inline-block max-w-[160px] truncate font-mono text-[10px] text-alemny-muted">{BRAND.email}</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>
 
-          <div className="flex items-center justify-between border-t border-alemny-purple/25 px-4 py-2.5 text-[11px] text-alemny-muted">
+          <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-t border-alemny-purple/25 px-4 py-2.5 text-[11px] text-alemny-muted">
             <span className="flex items-center gap-1.5">
               <ArrowLeft className="h-3 w-3 rotate-90" aria-hidden /> للتنقل بين النتائج
             </span>
@@ -197,7 +197,7 @@ function ResultRow({ item, onSelect }: { item: SearchItem; onSelect: () => void 
     <CommandItem
       value={item.id}
       onSelect={onSelect}
-      className="gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
+      className="min-h-[48px] gap-3 rounded-lg px-3 py-2.5 text-sm text-white aria-selected:bg-alemny-purple/15"
     >
       <span
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-[10px] font-bold"

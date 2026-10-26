@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <>
+    <div className="alemny-shell w-full py-10 sm:py-14">
       <VersusArena />
       <PromptBuilder />
-    </>
+    </div>
   );
 }

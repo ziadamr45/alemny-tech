@@ -1,209 +1,125 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+/* ============================================================
+   الشروحات العملية — /tutorials (V3)
+   شبكة بطاقات كاملة قابلة للنقر تفتح صفحة الشرح المستقلة
+   /tutorials/[slug]. البيانات حية من Neon PostgreSQL مع
+   احتياطي محلي أنيق.
+   ============================================================ */
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import type { ReactNode } from "react";
 import {
-  GraduationCap,
-  Youtube,
+  ArrowLeft,
+  ChartNoAxesColumn,
   Clock,
-  BarChart3,
-  ChevronDown,
-  Lightbulb,
+  GraduationCap,
+  ListOrdered,
   NotebookPen,
   SquareTerminal,
   Clapperboard,
-  ListOrdered,
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { arNum } from "@/lib/alemny/format";
 import { type Tutorial } from "@/lib/alemny/tutorials";
-import { SOCIALS } from "@/lib/alemny/constants";
 import { useAlemnyStore } from "@/lib/alemny/store";
 
-const TUTORIAL_ICONS = { notebook: NotebookPen, cursor: SquareTerminal, veo: Clapperboard } as const;
+/* صفحة التفاصيل: صف قاعدة البيانات يستخدم slug والبيانات المحلية تستخدم id */
+function detailHref(tutorial: { id: string; slug?: string }) {
+  return `/tutorials/${tutorial.slug ?? tutorial.id}`;
+}
 
-export function TutorialsHub({ focusSlug }: { focusSlug?: string }) {
+/* صفوف قاعدة البيانات تحمل summary، والاحتياطي الثابت يستخدم subtitle */
+function summaryOf(tutorial: { subtitle: string; summary?: string }) {
+  return tutorial.summary ?? tutorial.subtitle;
+}
+
+const TUTORIAL_ICONS = {
+  notebook: NotebookPen,
+  cursor: SquareTerminal,
+  veo: Clapperboard,
+} as const;
+
+export function TutorialsHub() {
   const tutorials = useAlemnyStore((s) => s.tutorials);
-  const [activeId, setActiveId] = useState(focusSlug ?? tutorials[0]?.id ?? "");
-  /* فتح شرح محدد عبر ?focus= — تعديل الحالة أثناء التصيير */
-  const [prevFocus, setPrevFocus] = useState<string | undefined>(focusSlug);
-  if (focusSlug !== prevFocus) {
-    setPrevFocus(focusSlug);
-    if (focusSlug && tutorials.some((t) => t.id === focusSlug)) setActiveId(focusSlug);
-  }
-  const tutorial = tutorials.find((t) => t.id === activeId) ?? tutorials[0];
 
   return (
-    <section id="tutorials" aria-label="أكاديمية الشروحات العملية" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <SectionHeading
-          eyebrow="أكاديمية الشروحات — شاهد وطبّق فورًا"
-          eyebrowIcon={GraduationCap}
-          title="الشروحات العملية"
-          highlight="خطوة بخطوة بالتفصيل"
-          description="دليل تنفيذ مصور لكل نظام: اتبع الخطوات بالترتيب، طبّق كل نقطة فورًا، وشاهد الشرح الكامل فيديو على قناة علَّمني تِك."
-        />
+    <section id="tutorials" aria-label="أكاديمية الشروحات العملية" className="relative">
+      <SectionHeading
+        eyebrow="أكاديمية الشروحات — شاهد وطبّق فورًا"
+        eyebrowIcon={GraduationCap}
+        title="الشروحات العملية"
+        highlight="خطوة بخطوة بالتفصيل"
+        description="دليل تنفيذ مصور لكل نظام: اتبع الخطوات بالترتيب، طبّق كل نقطة فورًا، وشاهد الشرح الكامل فيديو على قناة علَّمني تِك."
+      />
 
-        {/* اختيار الشرح */}
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-2.5" role="tablist" aria-label="اختر الشرح العملي">
-          {tutorials.map((t) => {
-            const Icon = TUTORIAL_ICONS[t.icon];
-            const active = t.id === activeId;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveId(t.id)}
-                className={`flex items-center gap-2.5 rounded-2xl px-4 py-3 text-[13.5px] font-bold transition-all duration-300 ${
-                  active ? "btn-neon text-white" : "glass-soft text-alemny-muted hover:border-alemny-purple/60 hover:text-white"
-                }`}
-              >
-                <Icon className="h-5 w-5" aria-hidden />
-                {t.title}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* الشرح النشط */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tutorial.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.4 }}
-            className="glass overflow-hidden rounded-[2rem]"
-          >
-            {/* ترويسة الشرح */}
-            <div className="border-b border-alemny-purple/25 bg-alemny-purple/6 p-5 md:p-7">
-              <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-                <div className="max-w-2xl">
-                  <h3 className="text-xl font-bold leading-9 text-white md:text-2xl">{tutorial.title}</h3>
-                  <p className="mt-2 text-[13.5px] leading-7 text-alemny-muted">{tutorial.subtitle}</p>
-                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                    <Meta icon={ListOrdered} text={`${arNum(tutorial.steps.length)} خطوات`} />
-                    <Meta icon={Clock} text={`المدة: ${tutorial.duration}`} />
-                    <Meta icon={BarChart3} text={`المستوى: ${tutorial.level}`} />
-                  </div>
-                </div>
-                <a
-                  href={tutorial.youtubeUrl ?? SOCIALS[0].url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-neon inline-flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3 text-[14px] font-bold text-white"
-                  aria-label={`شاهد شرح ${tutorial.title} على يوتيوب`}
-                >
-                  <Youtube className="h-5 w-5" aria-hidden />
-                  الشرح الكامل على يوتيوب
-                </a>
-              </div>
-            </div>
-
-            {/* الخطوات التفاعلية */}
-            <StepList steps={tutorial.steps} tutorialId={tutorial.id} />
-          </motion.div>
-        </AnimatePresence>
+      {/* شبكة البطاقات */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
+        {tutorials.map((tutorial, i) => (
+          <TutorialCard key={tutorial.id} tutorial={tutorial} index={i} />
+        ))}
       </div>
     </section>
   );
 }
 
-function Meta({ icon: Icon, text }: { icon: typeof Clock; text: string }) {
+function Badge({ icon: Icon, children }: { icon: typeof Clock; children: ReactNode }) {
   return (
-    <span className="glass-soft inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-bold text-alemny-muted">
+    <span className="glass-soft inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold text-alemny-muted">
       <Icon className="h-3.5 w-3.5 text-alemny-lilac" aria-hidden />
-      {text}
+      {children}
     </span>
   );
 }
 
-function StepList({ steps, tutorialId }: { steps: Tutorial["steps"]; tutorialId: string }) {
-  const [openStep, setOpenStep] = useState(0);
+function TutorialCard({ tutorial, index }: { tutorial: Tutorial; index: number }) {
+  const Icon = TUTORIAL_ICONS[tutorial.icon];
 
   return (
-    <div className="p-5 md:p-7">
-      <ol className="relative space-y-3">
-        {/* خط الرابط العمودي */}
-        <span className="absolute bottom-6 right-[26px] top-6 w-px bg-gradient-to-b from-alemny-purple/60 via-alemny-purple/25 to-transparent" aria-hidden />
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.45, delay: Math.min(index * 0.08, 0.3), ease: "easeOut" }}
+    >
+      <Link
+        href={detailHref(tutorial)}
+        className="card-3d group flex flex-col rounded-3xl p-6 md:p-7"
+      >
+        <span className="ambient-spot -top-14 left-1/3 h-32 w-32" aria-hidden />
 
-        {steps.map((step, i) => {
-          const open = openStep === i;
-          return (
-            <li key={step.title} className="relative">
-              <button
-                type="button"
-                onClick={() => setOpenStep(open ? -1 : i)}
-                aria-expanded={open}
-                className={`group flex w-full items-center gap-4 rounded-2xl border p-3.5 text-right transition-all duration-300 md:p-4 ${
-                  open
-                    ? "border-alemny-purple/60 bg-alemny-purple/10 shadow-[0_0_24px_rgba(128,70,233,0.25)]"
-                    : "glass-soft glass-hover"
-                }`}
-              >
-                <span
-                  className={`relative z-10 flex h-[54px] w-[54px] shrink-0 flex-col items-center justify-center rounded-2xl border transition-colors ${
-                    open ? "border-alemny-purple bg-alemny-purple/30 text-white" : "border-alemny-purple/35 bg-[#120E22] text-alemny-lilac"
-                  }`}
-                >
-                  <span className="text-[9px] font-bold opacity-70">خطوة</span>
-                  <span className="font-display text-lg font-bold leading-none">{i + 1}</span>
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className={`block text-[14.5px] font-bold leading-7 ${open ? "text-white" : "text-alemny-muted group-hover:text-white"}`}>
-                    {step.title}
-                  </span>
-                  {!open && <span className="mt-0.5 block truncate text-[12px] text-white/40">{step.desc}</span>}
-                </span>
-                <ChevronDown className={`h-5 w-5 shrink-0 text-alemny-lilac transition-transform duration-300 ${open ? "rotate-180" : ""}`} aria-hidden />
-              </button>
+        <div className="relative z-10 mb-4 flex items-center justify-between gap-2">
+          <span className="glass-soft flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-alemny-lilac">
+            <Icon className="h-6 w-6" aria-hidden />
+          </span>
+          <span className="rounded-full border border-alemny-purple/45 bg-alemny-purple/12 px-3 py-1 text-[11px] font-bold text-alemny-lilac">
+            {tutorial.level}
+          </span>
+        </div>
 
-              <AnimatePresence initial={false}>
-                {open && (
-                  <motion.div
-                    key={`${tutorialId}-step-${i}`}
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.32, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div className="mr-[70px] mt-2 space-y-3 rounded-2xl border border-alemny-purple/20 bg-[#0D0A18]/70 p-4">
-                      <p className="text-[13.5px] leading-8 text-alemny-muted">{step.desc}</p>
-                      <div className="flex items-start gap-2 rounded-xl border border-alemny-amber/30 bg-alemny-amber/8 p-3">
-                        <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-alemny-amber" aria-hidden />
-                        <p className="text-[12.5px] leading-6 text-alemny-amber">
-                          <span className="font-bold">نصيحة المحترفين: </span>
-                          {step.tip}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </li>
-          );
-        })}
-      </ol>
-
-      {/* دعوة أخيرة للقناة */}
-      <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-2xl border border-alemny-purple/30 bg-gradient-to-l from-alemny-purple/15 to-transparent p-5 sm:flex-row">
-        <p className="text-center text-[13.5px] leading-7 text-alemny-muted sm:text-right">
-          <span className="font-bold text-white">تريد رؤية كل خطوة على الشاشة؟ </span>
-          شروحات مصورة كاملة بالعربية تنتظرك على قناة علَّمني تِك الرسمية.
+        <h3 className="t-card-title relative z-10 font-bold text-white">{tutorial.title}</h3>
+        <p className="t-body relative z-10 mt-2.5 line-clamp-3 flex-1 text-white/70">
+          {summaryOf(tutorial)}
         </p>
-        <a
-          href={SOCIALS[0].url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-neon inline-flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-[13.5px] font-bold text-white"
-        >
-          <Youtube className="h-5 w-5" aria-hidden />
-          اشترك الآن — علَّمني تِك
-        </a>
-      </div>
-    </div>
+
+        {/* المستوى والمدة والخطوات */}
+        <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
+          <Badge icon={ListOrdered}>{arNum(tutorial.steps.length)} خطوات</Badge>
+          <Badge icon={Clock}>المدة: {tutorial.duration}</Badge>
+          <Badge icon={ChartNoAxesColumn}>{tutorial.level}</Badge>
+        </div>
+
+        <div className="relative z-10 mt-5 flex items-center justify-end border-t border-alemny-purple/15 pt-4">
+          <span className="inline-flex items-center gap-1.5 rounded-xl border border-alemny-purple/45 bg-alemny-purple/12 px-4 py-2 text-[12.5px] font-bold text-white transition-all group-hover:border-alemny-lilac group-hover:bg-alemny-purple/25">
+            افتح الشرح
+            <ArrowLeft
+              className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1"
+              aria-hidden
+            />
+          </span>
+        </div>
+      </Link>
+    </motion.div>
   );
 }

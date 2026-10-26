@@ -55,7 +55,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* ============ ALEMNY TECH — 8K GLASSMORPHIC NEON THEME ============ */
+/* ============ ALEMNY TECH — 8K GLASSMORPHIC GLOW THEME ============ */
 :root {
   --radius: 0.75rem;
   --background: #07060b;
@@ -157,7 +157,7 @@ body {
     inset 0 0 26px rgba(128, 70, 233, 0.06);
 }
 
-/* ------- Neon text & glows ------- */
+/* ------- توهج النيون للنصوص ------- */
 .text-gradient {
   background: linear-gradient(120deg, #ffffff 5%, #dcc8ff 38%, #a855f7 72%, #8046e9 100%);
   -webkit-background-clip: text;
@@ -326,7 +326,7 @@ body {
 }
 
 /* ==================================================================
-   ULTRA-LUXURY 3D SPATIAL SYSTEM — Volumetric Neon Glass
+   ULTRA-LUXURY 3D SPATIAL SYSTEM — Volumetric Glass Glow
    (multi-layered cards, gradient borders, specular reflections,
     ambient spotlights, and 3D glass orbs) — V2 design language
    ================================================================== */
@@ -562,3 +562,198 @@ body {
     @apply text-foreground;
   }
 }
+
+/* ==================================================================
+   V3 RESPONSIVE SYSTEM — محرك الاستجابة الشامل لعلَّمني تِك
+   Universal device-aware responsive engine:
+   من موبايل 320px → تابلت → لابتوب → ديسكتوب عريض → شاشات 4K/TV.
+   الحاويات السائلة، الطباعة المتدرجة، حلقات تركيز الريموت/لوحة
+   المفاتيح، نظام الأزرار الأوبسيديان، وحاوية التنقل السفلية.
+   ================================================================== */
+
+/* ---------- صفر تمرير أفقي في كل الأجهزة ---------- */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* تُعرَّف الأصناف داخل طبقة components حتى تتمكن أدوات Tailwind
+   (طبقة utilities) من تجاوز أي خاصية عند الحاجة */
+@layer components {
+
+/* ---------- الحاوية الأم للموقع كله ----------
+   سائلة حتى 2000px ثم تثبت مع حاشية 48px على شاشات ≥2560px */
+.alemny-shell {
+  width: 100%;
+  max-width: 2000px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3vw, 3rem);
+}
+
+/* ---------- الطباعة السائلة المتدرجة ---------- */
+.t-hero {
+  font-size: clamp(1.85rem, 3.8vw, 3.75rem);
+  line-height: 1.25;
+}
+.t-section {
+  font-size: clamp(1.45rem, 2.6vw, 2.5rem);
+  line-height: 1.3;
+}
+.t-card-title {
+  font-size: clamp(1.15rem, 1.5vw, 1.4rem);
+  line-height: 1.4;
+}
+.t-body {
+  font-size: clamp(0.95rem, 1.1vw, 1.125rem);
+  line-height: 1.75;
+}
+
+/* ---------- إخفاء أشرطة التمرير مع بقاء السحب ---------- */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- شرائح التصفية: سحب أفقي سلس على اللمس،
+   التفاف وتوسيط تلقائي على الديسكتوب ---------- */
+.filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.25rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+@media (min-width: 1280px) {
+  .filter-chips {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    justify-content: center;
+  }
+}
+
+/* ---------- أداة استعلامات الحاويات ---------- */
+.alemny-cq {
+  container-type: inline-size;
+}
+
+/* ---------- اللمس: إزالة وميض النقر الافتراضي ---------- */
+@media (pointer: coarse) {
+  :where(a, button, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ---------- حلقات تركيز الريموت/لوحة المفاتيح (TV D-Pad) ----------
+   على كل عنصر تفاعلي — إلزامية لدعم أجهزة التلفاز الذكي */
+:where(a, button, [role="button"], [tabindex]):focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(168, 85, 247, 0.65),
+    0 0 0 7px rgba(168, 85, 247, 0.18);
+  transform: scale(1.02);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  border-radius: inherit;
+}
+:where(input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.55);
+}
+/* صنف جاهز للحالات الخاصة التي تحتاج نفس حلقة التركيز */
+.tv-focus:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(168, 85, 247, 0.65),
+    0 0 0 7px rgba(168, 85, 247, 0.18);
+  transform: scale(1.02);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  border-radius: inherit;
+}
+
+/* ---------- نظام الأزرار الأوبسيديان الزجاجي ----------
+   زجاج أوبسيديان متعدد الطبقات بأسلوب Linear/Vercel —
+   بديل عن الأزرار المسطحة */
+.obsidian-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  min-height: 48px;
+  padding: 0.65rem 1.15rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.obsidian-btn:hover {
+  border-color: rgba(128, 70, 233, 0.6);
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.14), rgba(109, 40, 217, 0.08));
+  transform: translateY(-1px);
+}
+.obsidian-btn-primary {
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  background: linear-gradient(180deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    0 12px 30px -10px rgba(128, 70, 233, 0.55);
+}
+.obsidian-btn-primary:hover {
+  background: linear-gradient(180deg, #9f67f8, #7c3aed);
+  border-color: rgba(168, 85, 247, 0.75);
+}
+
+/* ---------- حقول الزجاج — خط 16px يمنع تكبير iOS التلقائي ---------- */
+.glass-input {
+  min-height: 48px;
+  width: 100%;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.7rem 0.95rem;
+  font-size: 1rem;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.glass-input:focus {
+  border-color: rgba(128, 70, 233, 0.55);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+  outline: none;
+}
+
+/* ---------- حاوية التنقل السفلية الزجاجية العائمة ---------- */
+.dock-3d {
+  position: fixed;
+  bottom: 1rem;
+  inset-inline: 1rem;
+  z-index: 50;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(20, 12, 32, 0.88), rgba(12, 7, 20, 0.92));
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    0 24px 50px -12px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(128, 70, 233, 0.12),
+    0 10px 40px -14px rgba(128, 70, 233, 0.35);
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+}
+
+} /* @layer components */

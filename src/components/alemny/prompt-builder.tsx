@@ -29,6 +29,8 @@ import {
   type BuilderIcon,
 } from "@/lib/alemny/builder";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { BRAND_IMAGE_SIGNATURE, BRAND_TEXT_SIGNATURE } from "@/lib/alemny/signature";
 
 const FIELD_ICONS: Record<BuilderIcon, typeof BookOpen> = {
   book: BookOpen,
@@ -47,17 +49,42 @@ const INITIAL_FORM: BuilderFormState = {
   extra: "",
 };
 
+/**
+ * النص النقي للنسخ من المختبر:
+ * إزالة أسطر الفواصل الزخرفية (─ ━) وسطري الترويسة والتوقيع الترويجي القديم —
+ * توقيع المنصة الرسمي يُضاف بدلًا منهما عند تفعيل المفتاح.
+ */
+function pureBuilderPrompt(raw: string): string {
+  return raw
+    .split("\n")
+    .filter((line) => {
+      const t = line.trim();
+      if (!t) return true;
+      if (/^[─━]+$/.test(t)) return false; // فواصل زخرفية
+      if (t.includes("علّمني تِك") || /^[🧠✦]/u.test(t)) return false; // ترويسة/توقيع تسويقي
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function PromptBuilder() {
   const [form, setForm] = useState<BuilderFormState>(INITIAL_FORM);
   const [output, setOutput] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  /* توقيع علّمني تِك عند النسخ — مفعّل افتراضيًّا */
+  const [includeSignature, setIncludeSignature] = useState(true);
 
   const field = useMemo(() => BUILDER_FIELDS.find((f) => f.id === form.fieldId) ?? BUILDER_FIELDS[0], [form.fieldId]);
   const model = useMemo(() => BUILDER_MODELS.find((m) => m.id === form.modelId) ?? BUILDER_MODELS[0], [form.modelId]);
   const depth = useMemo(() => BUILDER_DEPTHS.find((d) => d.id === form.depthId) ?? BUILDER_DEPTHS[0], [form.depthId]);
 
   const patch = (partial: Partial<BuilderFormState>) => setForm((prev) => ({ ...prev, ...partial }));
+
+  /* وضع الصور: مجال التصميم + هدف «توليد صورة 8K ثلاثية الأبعاد» → توقيع بصري */
+  const isImageMode = form.fieldId === "design" && form.goalId === "image";
 
   const changeField = (fieldId: string) => {
     const nextField = BUILDER_FIELDS.find((f) => f.id === fieldId) ?? BUILDER_FIELDS[0];
@@ -76,7 +103,10 @@ export function PromptBuilder() {
 
   const onCopy = async () => {
     if (!output) return;
-    const ok = await copyText(output);
+    /* نسخ نقي: البرومبت الهندسي المجمع بلا فواصل زخرفية + التوقيع المناسب عند التفعيل */
+    const pure = pureBuilderPrompt(output);
+    const text = includeSignature ? `${pure}\n\n${isImageMode ? BRAND_IMAGE_SIGNATURE : BRAND_TEXT_SIGNATURE}` : pure;
+    const ok = await copyText(text);
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -88,8 +118,7 @@ export function PromptBuilder() {
 
   return (
     <section id="builder" aria-label="صانع البرومبتات الذكي" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <SectionHeading
+      <SectionHeading
           eyebrow="المختبر الذكي — برومبت على مقاسك"
           eyebrowIcon={FlaskConical}
           title="صانع الأوامر الهندسي"
@@ -97,9 +126,9 @@ export function PromptBuilder() {
           description="اختر مجالك، النموذج المستهدف، هدفك، وعمق الصياغة — وسيبني لك المختبر برومبتًا هندسيًّا كاملًا: الدور، السياق، الخطوات، القيود، وصيغة المخرجات. جاهز للنسخ في ثوانٍ."
         />
 
-        <div className="grid gap-6 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
           {/* لوحة التحكم */}
-          <div className="glass rounded-3xl p-5 md:p-6 lg:col-span-2">
+          <div className="glass rounded-3xl p-5 md:p-6 xl:col-span-2">
             <p className="mb-5 flex items-center gap-2 text-[15px] font-bold text-white">
               <Wand2 className="h-5 w-5 text-alemny-lilac" aria-hidden />
               لوحة التوليد
@@ -108,7 +137,7 @@ export function PromptBuilder() {
             <div className="space-y-4">
               <Field label="المجال">
                 <Select value={form.fieldId} onValueChange={changeField}>
-                  <SelectTrigger className="h-12 w-full border-alemny-purple/35 bg-[#120E22] text-white focus:ring-alemny-purple/50">
+                  <SelectTrigger className="min-h-[48px] w-full border-alemny-purple/35 bg-[#120E22] text-base text-white focus:ring-alemny-purple/50">
                     <SelectValue placeholder="اختر المجال" />
                   </SelectTrigger>
                   <SelectContent className="border-alemny-purple/40 bg-[#140F24] text-white">
@@ -129,7 +158,7 @@ export function PromptBuilder() {
 
               <Field label="الهدف المطلوب">
                 <Select value={form.goalId} onValueChange={(v) => patch({ goalId: v })}>
-                  <SelectTrigger className="h-12 w-full border-alemny-purple/35 bg-[#120E22] text-white focus:ring-alemny-purple/50">
+                  <SelectTrigger className="min-h-[48px] w-full border-alemny-purple/35 bg-[#120E22] text-base text-white focus:ring-alemny-purple/50">
                     <SelectValue placeholder="اختر الهدف" />
                   </SelectTrigger>
                   <SelectContent className="border-alemny-purple/40 bg-[#140F24] text-white">
@@ -144,7 +173,7 @@ export function PromptBuilder() {
 
               <Field label="النموذج المستهدف">
                 <Select value={form.modelId} onValueChange={(v) => patch({ modelId: v })}>
-                  <SelectTrigger className="h-12 w-full border-alemny-purple/35 bg-[#120E22] text-white focus:ring-alemny-purple/50">
+                  <SelectTrigger className="min-h-[48px] w-full border-alemny-purple/35 bg-[#120E22] text-base text-white focus:ring-alemny-purple/50">
                     <SelectValue placeholder="اختر النموذج" />
                   </SelectTrigger>
                   <SelectContent className="border-alemny-purple/40 bg-[#140F24] text-white">
@@ -184,7 +213,7 @@ export function PromptBuilder() {
                   value={form.topic}
                   onChange={(e) => patch({ topic: e.target.value })}
                   placeholder="مثال: مادة هندسة البرمجيات / متجر إلكتروني للعطور..."
-                  className="h-12 w-full rounded-xl border border-alemny-purple/35 bg-[#120E22] px-4 text-[13.5px] text-white placeholder:text-white/25 focus:border-alemny-purple focus:outline-none focus:ring-1 focus:ring-alemny-purple/50"
+                  className="glass-input w-full min-h-[48px] text-base placeholder:text-white/25"
                 />
               </Field>
 
@@ -194,7 +223,7 @@ export function PromptBuilder() {
                   onChange={(e) => patch({ extra: e.target.value })}
                   placeholder="أي قيود أو سياق خاص: مدة، ميزانية، أسلوب..."
                   rows={2}
-                  className="w-full rounded-xl border border-alemny-purple/35 bg-[#120E22] px-4 py-3 text-[13.5px] text-white placeholder:text-white/25 focus:border-alemny-purple focus:outline-none focus:ring-1 focus:ring-alemny-purple/50"
+                  className="glass-input w-full min-h-[48px] text-base placeholder:text-white/25"
                 />
               </Field>
 
@@ -225,7 +254,7 @@ export function PromptBuilder() {
           </div>
 
           {/* لوحة المخرجات */}
-          <div className="glass flex min-h-[420px] flex-col rounded-3xl p-5 md:p-6 lg:col-span-3">
+          <div className="glass flex min-h-[420px] flex-col rounded-3xl p-5 md:p-6 xl:col-span-3">
             <div className="mb-4 flex items-center justify-between">
               <p className="flex items-center gap-2 text-[15px] font-bold text-white">
                 <FlaskConical className="h-5 w-5 text-alemny-emerald" aria-hidden />
@@ -257,9 +286,22 @@ export function PromptBuilder() {
                 <motion.div key="output" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col">
                   <div
                     dir="rtl"
-                    className="mb-4 max-h-[460px] flex-1 overflow-y-auto whitespace-pre-wrap rounded-2xl border border-alemny-purple/25 bg-black/45 p-5 font-body text-[13.5px] leading-8 text-alemny-muted"
+                    className="mb-4 max-h-[460px] flex-1 overflow-y-auto whitespace-pre-wrap break-words rounded-2xl border border-alemny-purple/25 bg-black/45 p-5 font-body text-[13.5px] leading-8 text-alemny-muted"
                   >
                     {output}
+                  </div>
+                  {/* مفتاح توقيع المنصة عند النسخ */}
+                  <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
+                      <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
+                    </span>
+                    <Switch
+                      checked={includeSignature}
+                      onCheckedChange={setIncludeSignature}
+                      aria-label="توقيع علّمني تِك عند النسخ"
+                      className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
+                    />
                   </div>
                   <button
                     type="button"
@@ -290,7 +332,6 @@ export function PromptBuilder() {
             </AnimatePresence>
           </div>
         </div>
-      </div>
     </section>
   );
 }

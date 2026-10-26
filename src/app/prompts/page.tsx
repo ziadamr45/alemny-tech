@@ -14,5 +14,9 @@ export default async function Page({
   searchParams: Promise<{ cat?: string; focus?: string }>;
 }) {
   const sp = await searchParams;
-  return <PromptVault initialCat={sp.cat} focusSlug={sp.focus} />;
+  return (
+    <div className="alemny-shell w-full py-10 sm:py-14">
+      <PromptVault initialCat={sp.cat} focusSlug={sp.focus} />
+    </div>
+  );
 }

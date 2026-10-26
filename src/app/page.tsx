@@ -6,7 +6,8 @@ const jsonLd = {
   "@type": "Organization",
   name: "علَّمني تِك — Alemny Tech",
   alternateName: "Alemny Tech",
-  description: "كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي — منصة عربية دائمة للمقالات والشروحات وهندسة الأوامر.",
+  description:
+    "بوابتك العملية لإتقان أحدث تقنيات الذكاء الاصطناعي، البرمجة، وهندسة الأوامر بخطوات تطبيقية مبسطة.",
   email: "Alemnytech@gmail.com",
   sameAs: [
     "https://youtube.com/@alemnytech?si=oFjESFXnUTG4EP8B",

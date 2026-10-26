@@ -116,6 +116,22 @@ model Article {
 }
 
 /* ------------------------------------------------------------
+   إشعارات الويب الفورية — Web Push Subscriptions (VAPID)
+   visitor = متابعو المنصة العامة | admin = أجهزة التنبيهات الأمنية
+   ------------------------------------------------------------ */
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String   @default("")
+  role      String   @default("visitor") // visitor | admin
+  createdAt DateTime @default(now())
+
+  @@index([role])
+}
+
+/* ------------------------------------------------------------
    أكاديمية الشروحات العملية — Tutorials Hub
    ------------------------------------------------------------ */
 model Tutorial {

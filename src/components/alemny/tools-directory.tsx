@@ -47,8 +47,7 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
 
   return (
     <section id="tools" aria-label="دليل أدوات الذكاء الاصطناعي" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <SectionHeading
+      <SectionHeading
           eyebrow="الدليل التقني المتجدد — موثق ومراجع يدويًّا"
           eyebrowIcon={BadgeCheck}
           title="الدليل التقني المتجدد"
@@ -60,7 +59,7 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
         <div className="glass mb-10 space-y-4 rounded-3xl p-4 md:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* تصفية الفئات */}
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="تصفية حسب الفئة">
+            <div className="filter-chips min-w-0 items-center" role="group" aria-label="تصفية حسب الفئة">
               <span className="ml-1 text-xs font-bold text-alemny-muted">الفئة:</span>
               <FilterChip active={cat === "all"} onClick={() => setCat("all")} label="الكل" count={tools.length} />
               {TOOL_CATEGORIES.map((c) => (
@@ -75,7 +74,7 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
             </div>
 
             {/* تصفية السعر */}
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="تصفية حسب السعر">
+            <div className="filter-chips min-w-0 items-center" role="group" aria-label="تصفية حسب السعر">
               <span className="ml-1 text-xs font-bold text-alemny-muted">السعر:</span>
               <FilterChip active={price === "all"} onClick={() => setPrice("all")} label="الكل" small />
               {TOOL_PRICING.map((p) => (
@@ -92,14 +91,17 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
 
           {/* البحث */}
           <div className="flex items-center gap-3 border-t border-alemny-purple/20 pt-4">
-            <div className="glass-soft flex flex-1 items-center gap-2 rounded-full px-4 py-2.5">
-              <Search className="h-4 w-4 shrink-0 text-alemny-lilac" aria-hidden />
+            <div className="relative min-w-0 flex-1">
+              <Search
+                className="pointer-events-none absolute start-4 top-1/2 h-4 w-4 -translate-y-1/2 text-alemny-lilac"
+                aria-hidden
+              />
               <input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث عن أداة: NotebookLM، Cursor، Veo..."
-                className="w-full bg-transparent text-sm text-white placeholder:text-white/35 focus:outline-none"
+                placeholder="ابحث عن أداة بالاسم أو الميزة..."
+                className="glass-input w-full min-h-[48px] ps-11 text-base placeholder:text-white/35"
                 aria-label="بحث في دليل الأدوات"
               />
             </div>
@@ -120,7 +122,7 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
             </button>
           </div>
         ) : (
-          <motion.div layout className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
             <AnimatePresence mode="popLayout">
               {filtered.map((tool) => (
                 <ToolCard key={tool.id} tool={tool} />
@@ -128,7 +130,6 @@ export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
             </AnimatePresence>
           </motion.div>
         )}
-      </div>
     </section>
   );
 }
@@ -186,7 +187,7 @@ function ToolCard({ tool }: { tool: AITool }) {
           <ToolIconGlyph icon={tool.icon} className="h-6 w-6" />
         </span>
         <div className="min-w-0">
-          <h3 className="text-[17px] font-bold leading-7 text-white">{tool.name}</h3>
+          <h3 className="t-card-title font-bold text-white">{tool.name}</h3>
           <p className="font-en text-[11.5px] tracking-wide text-alemny-muted">{tool.nameEn}</p>
           {tool.badge && (
             <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-alemny-amber/40 bg-alemny-amber/10 px-2 py-0.5 text-[10px] font-bold text-alemny-amber">
@@ -229,17 +230,24 @@ function ToolCard({ tool }: { tool: AITool }) {
         <p className="text-[12.5px] leading-6 text-alemny-muted">{tool.useCase}</p>
       </div>
 
-      {/* الرابط الرسمي */}
-      <a
-        href={tool.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="glass glass-hover mt-auto flex h-12 items-center justify-center gap-2 rounded-2xl text-[14px] font-bold text-white"
-        aria-label={`فتح الموقع الرسمي لـ ${tool.name}`}
-      >
-        <ExternalLink className="h-4.5 w-4.5 text-alemny-cyan" aria-hidden />
-        الرابط الرسمي المباشر
-      </a>
+      {/* الرابط الرسمي — عرض + فتح */}
+      <div className="mt-auto min-w-0">
+        <div className="mb-2 min-w-0">
+          <span dir="ltr" className="inline-block max-w-full truncate font-mono text-xs text-alemny-muted">
+            {tool.url}
+          </span>
+        </div>
+        <a
+          href={tool.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="glass glass-hover flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[14px] font-bold text-white"
+          aria-label={`فتح الموقع الرسمي لـ ${tool.name}`}
+        >
+          <ExternalLink className="h-4.5 w-4.5 text-alemny-cyan" aria-hidden />
+          الرابط الرسمي المباشر
+        </a>
+      </div>
     </motion.article>
   );
 }

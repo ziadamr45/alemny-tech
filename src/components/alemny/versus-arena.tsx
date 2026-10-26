@@ -15,11 +15,14 @@ import {
   Crown,
   Route,
   Copy,
+  Sparkles,
   Swords as VsIcon,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { SectionHeading } from "./section-heading";
 import { arDigits } from "@/lib/alemny/format";
 import { copyText } from "@/lib/alemny/clipboard";
+import { BRAND_TEXT_SIGNATURE } from "@/lib/alemny/signature";
 import { ARENA_MODELS_META, type VersusMission } from "@/lib/alemny/versus";
 import { missionChallengePrompt, useAlemnyStore } from "@/lib/alemny/store";
 
@@ -28,6 +31,8 @@ const MISSION_ICONS = { book: BookOpen, code: Code2, pen: PenLine, mic: Mic } as
 export function VersusArena() {
   const missions = useAlemnyStore((s) => s.missions);
   const [missionId, setMissionId] = useState(missions[0].id);
+  /* توقيع علّمني تِك عند النسخ — مفعّل افتراضيًّا ومشترك في الحلبة */
+  const [includeSignature, setIncludeSignature] = useState(true);
   const mission = useMemo(
     () => missions.find((m) => m.id === missionId) ?? missions[0],
     [missionId, missions]
@@ -35,8 +40,7 @@ export function VersusArena() {
 
   return (
     <section id="versus" aria-label="حلبة المقارنات" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <SectionHeading
+      <SectionHeading
           eyebrow="المختبر الذكي — قارن ثم قرر"
           eyebrowIcon={Swords}
           title="حلبة المواجهة العملية"
@@ -95,8 +99,8 @@ export function VersusArena() {
               <p className="text-[13.5px] leading-7 text-alemny-muted">{mission.description}</p>
             </div>
 
-            {/* بطاقات النماذج الثلاثة */}
-            <div className="mb-8 grid gap-5 lg:grid-cols-3">
+            {/* بطاقات النماذج — عمودان كحد أقصي */}
+            <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
               {mission.models.map((model, idx) => (
                 <ModelPanel key={model.id} model={model} isWinner={mission.winner === model.id} delay={idx * 0.12} />
               ))}
@@ -130,10 +134,13 @@ export function VersusArena() {
             </div>
 
             {/* برومبت التحدي الموحد */}
-            <ChallengePromptBox mission={mission} />
+            <ChallengePromptBox
+              mission={mission}
+              includeSignature={includeSignature}
+              onToggleSignature={setIncludeSignature}
+            />
           </motion.div>
         </AnimatePresence>
-      </div>
     </section>
   );
 }
@@ -162,7 +169,7 @@ function ModelPanel({ model, isWinner, delay }: { model: VersusMission["models"]
 
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="font-bold text-white">{meta.name}</p>
+          <p className="t-card-title font-bold text-white">{meta.name}</p>
           <p className="font-en text-[11px] tracking-wide text-alemny-muted">{meta.nameEn}</p>
         </div>
         <span className="font-display text-3xl font-bold" style={{ color: meta.color }}>
@@ -204,12 +211,23 @@ function ModelPanel({ model, isWinner, delay }: { model: VersusMission["models"]
 
 /* ------------------------- برومبت التحدي الموحد ------------------------- */
 
-function ChallengePromptBox({ mission }: { mission: VersusMission }) {
+function ChallengePromptBox({
+  mission,
+  includeSignature,
+  onToggleSignature,
+}: {
+  mission: VersusMission;
+  includeSignature: boolean;
+  onToggleSignature: (v: boolean) => void;
+}) {
   const [copied, setCopied] = useState(false);
   const prompt = useMemo(() => missionChallengePrompt(mission), [mission]);
 
   const onCopy = async () => {
-    const ok = await copyText(prompt);
+    /* نسخ نقي: برومبت التحدي بلا فواصل زخرفية + توقيع المنصة عند التفعيل */
+    const pure = prompt.replace(/─+/g, "").trim();
+    const text = includeSignature ? `${pure}\n\n${BRAND_TEXT_SIGNATURE}` : pure;
+    const ok = await copyText(text);
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -225,7 +243,7 @@ function ChallengePromptBox({ mission }: { mission: VersusMission }) {
     <div className="rounded-2xl border border-alemny-emerald/30 bg-alemny-emerald/6 p-4 md:p-6">
       <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[14px] font-bold text-white">برومبت التحدي الموحد</p>
+          <p className="t-card-title font-bold text-white">برومبت التحدي الموحد</p>
           <p className="mt-0.5 text-[12px] text-alemny-muted">نفس النص في النماذج الثلاثة = مقارنة عادلة ١٠٠٪.</p>
         </div>
         <button
@@ -237,6 +255,19 @@ function ChallengePromptBox({ mission }: { mission: VersusMission }) {
           {copied ? <Check className="h-4.5 w-4.5" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
           {copied ? "تم النسخ بنجاح!" : "نسخ البرومبت الموحد"}
         </button>
+      </div>
+      {/* مفتاح توقيع المنصة عند النسخ */}
+      <div className="mb-3 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3.5 py-1.5">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
+          <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
+        </span>
+        <Switch
+          checked={includeSignature}
+          onCheckedChange={onToggleSignature}
+          aria-label="توقيع علّمني تِك عند النسخ"
+          className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
+        />
       </div>
       <pre
         dir="rtl"

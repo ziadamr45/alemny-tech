@@ -11,8 +11,12 @@ export const metadata: Metadata = {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string; focus?: string }>;
+  searchParams: Promise<{ cat?: string }>;
 }) {
   const sp = await searchParams;
-  return <ArticlesFeed initialCat={sp.cat} focusSlug={sp.focus} />;
+  return (
+    <div className="alemny-shell w-full py-10 sm:py-14">
+      <ArticlesFeed initialCat={sp.cat} />
+    </div>
+  );
 }

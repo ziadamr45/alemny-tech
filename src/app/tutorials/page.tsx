@@ -8,11 +8,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tutorials" },
 };
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ focus?: string }>;
-}) {
-  const sp = await searchParams;
-  return <TutorialsHub focusSlug={sp.focus} />;
+export default function Page() {
+  return (
+    <div className="alemny-shell w-full py-10 sm:py-14">
+      <TutorialsHub />
+    </div>
+  );
 }

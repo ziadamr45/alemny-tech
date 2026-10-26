@@ -24,10 +24,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { SectionHeading } from "./section-heading";
 import { PromptIconGlyph, ModelBadge } from "./icons";
 import { copyText } from "@/lib/alemny/clipboard";
 import { arNum } from "@/lib/alemny/format";
+import { buildPurePrompt } from "@/lib/alemny/signature";
 import { useAlemnyStore } from "@/lib/alemny/store";
 import {
   PROMPT_CATEGORIES,
@@ -56,6 +58,8 @@ export function PromptVault({ initialCat, focusSlug }: PromptVaultProps) {
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(!!initialCat && initialCat !== "all");
   const [customize, setCustomize] = useState<MagicPrompt | null>(null);
+  /* توقيع علَّمني تِك عند النسخ — مفعَّل افتراضيًّا ومشترك بين البطاقات ونافذة التخصيص */
+  const [includeSignature, setIncludeSignature] = useState(true);
   const prompts = useAlemnyStore((s) => s.prompts);
 
   /* فتح برومبت محدد عبر ?focus= — تعديل الحالة أثناء التصيير */
@@ -83,8 +87,7 @@ export function PromptVault({ initialCat, focusSlug }: PromptVaultProps) {
 
   return (
     <section id="prompts" aria-label="مكتبة هندسة الأوامر" className="relative py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <SectionHeading
+      <SectionHeading
           eyebrow="هندسة الأوامر — انسخ وخصّص والصق"
           eyebrowIcon={Wand2}
           title="مكتبة البرومبتات الهندسية"
@@ -93,7 +96,7 @@ export function PromptVault({ initialCat, focusSlug }: PromptVaultProps) {
         />
 
         {/* التبويبات */}
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-2" role="tablist" aria-label="تصفية البرومبتات حسب الفئة">
+        <div className="filter-chips mb-4 items-center" role="tablist" aria-label="تصفية البرومبتات حسب الفئة">
           {TABS.map((t) => {
             const count = t.id === "all" ? prompts.length : prompts.filter((p) => p.category === t.id).length;
             const activeTab = tab === t.id;
@@ -162,10 +165,16 @@ export function PromptVault({ initialCat, focusSlug }: PromptVaultProps) {
             </button>
           </div>
         ) : (
-          <motion.div layout className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 xl:gap-7">
             <AnimatePresence mode="popLayout">
               {visible.map((prompt) => (
-                <PromptCard key={prompt.id} prompt={prompt} onCustomize={() => setCustomize(prompt)} />
+                <PromptCard
+                  key={prompt.id}
+                  prompt={prompt}
+                  includeSignature={includeSignature}
+                  onToggleSignature={setIncludeSignature}
+                  onCustomize={() => setCustomize(prompt)}
+                />
               ))}
             </AnimatePresence>
           </motion.div>
@@ -185,22 +194,37 @@ export function PromptVault({ initialCat, focusSlug }: PromptVaultProps) {
             </button>
           </div>
         )}
-      </div>
 
       {/* نافذة التخصيص الكاملة */}
-      <CustomizeModal prompt={customize} onClose={() => setCustomize(null)} />
+      <CustomizeModal
+        prompt={customize}
+        onClose={() => setCustomize(null)}
+        includeSignature={includeSignature}
+        onToggleSignature={setIncludeSignature}
+      />
     </section>
   );
 }
 
 /* ============================ بطاقة البرومبت ============================ */
 
-function PromptCard({ prompt, onCustomize }: { prompt: MagicPrompt; onCustomize: () => void }) {
+function PromptCard({
+  prompt,
+  includeSignature,
+  onToggleSignature,
+  onCustomize,
+}: {
+  prompt: MagicPrompt;
+  includeSignature: boolean;
+  onToggleSignature: (v: boolean) => void;
+  onCustomize: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const categoryLabel = PROMPT_CATEGORIES.find((c) => c.id === prompt.category)?.label ?? "";
 
   const onQuickCopy = async () => {
-    const ok = await copyText(prompt.body);
+    /* نسخ نقي: نص البرومبت فقط (بلا فواصل أو شرح) + توقيع المنصة عند التفعيل */
+    const ok = await copyText(buildPurePrompt(prompt.body, prompt.category, includeSignature));
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -234,7 +258,7 @@ function PromptCard({ prompt, onCustomize }: { prompt: MagicPrompt; onCustomize:
           <span className="mb-1.5 inline-block rounded-full border border-alemny-purple/35 bg-alemny-purple/10 px-2.5 py-0.5 text-[10.5px] font-bold text-alemny-lilac">
             {categoryLabel}
           </span>
-          <h3 className="text-[17px] font-bold leading-7 text-white">{prompt.title}</h3>
+          <h3 className="t-card-title font-bold text-white">{prompt.title}</h3>
         </div>
       </div>
 
@@ -284,6 +308,20 @@ function PromptCard({ prompt, onCustomize }: { prompt: MagicPrompt; onCustomize:
         </p>
       )}
 
+      {/* مفتاح توقيع المنصة عند النسخ */}
+      <div className="relative z-10 mb-2.5 flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-1.5">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
+          <span className="text-xs leading-5 text-white/60">توقيع علَّمني تِك عند النسخ</span>
+        </span>
+        <Switch
+          checked={includeSignature}
+          onCheckedChange={onToggleSignature}
+          aria-label="توقيع علَّمني تِك عند النسخ"
+          className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
+        />
+      </div>
+
       {/* أزرار الإجراء — نسخ سريع + تخصيص كامل */}
       <div className="relative z-10 mt-auto grid gap-2.5">
         <button
@@ -312,7 +350,17 @@ function PromptCard({ prompt, onCustomize }: { prompt: MagicPrompt; onCustomize:
 
 /* ==================== نافذة التخصيص الزجاجية الكاملة ==================== */
 
-function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClose: () => void }) {
+function CustomizeModal({
+  prompt,
+  onClose,
+  includeSignature,
+  onToggleSignature,
+}: {
+  prompt: MagicPrompt | null;
+  onClose: () => void;
+  includeSignature: boolean;
+  onToggleSignature: (v: boolean) => void;
+}) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
 
@@ -348,7 +396,8 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
 
   const onCopy = async () => {
     if (!prompt) return;
-    const ok = await copyText(finalPrompt);
+    /* نسخ نقي: البرومبت المخصَّص فقط بلا فواصل زخرفية + توقيع المنصة عند التفعيل */
+    const ok = await copyText(buildPurePrompt(finalPrompt, prompt.category, includeSignature));
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
@@ -366,10 +415,10 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
   return (
     <Dialog open={!!prompt} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="glass max-h-[88vh] max-w-3xl gap-0 overflow-y-auto rounded-3xl border-alemny-purple/40 bg-[#0C0916]/97 p-0 shadow-[0_40px_120px_-30px_rgba(128,70,233,0.55)]"
+        className="glass w-[calc(100%-2rem)] max-w-3xl sm:max-w-3xl gap-0 overflow-hidden rounded-3xl border-alemny-purple/40 bg-[#0C0916]/97 p-0 shadow-[0_40px_120px_-30px_rgba(128,70,233,0.55)]"
       >
         {prompt && (
-          <div className="p-6 md:p-8">
+          <div className="max-h-[70vh] overflow-y-auto no-scrollbar p-6 md:p-8">
             <DialogTitle className="sr-only">تخصيص البرومبت: {prompt.title}</DialogTitle>
             <DialogDescription className="sr-only">أدخل قيم متغيراتك وشاهد البرومبت يتحدث فورًا ثم انسخه.</DialogDescription>
 
@@ -383,7 +432,7 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
                   <p className="mb-1 text-[11px] font-bold text-alemny-lilac">
                     {PROMPT_CATEGORIES.find((c) => c.id === prompt.category)?.label}
                   </p>
-                  <h3 className="font-display text-lg font-bold leading-7 text-white md:text-xl">{prompt.title}</h3>
+                  <h3 className="t-card-title font-display font-bold text-white">{prompt.title}</h3>
                 </div>
               </div>
               <button
@@ -415,16 +464,16 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
                     {arNum(filledCount)} / {arNum(prompt.variables.length)} حقول معبّأة
                   </span>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 w-full xl:grid-cols-2">
                   {prompt.variables.map((v) => (
-                    <label key={v.key} className="block sm:col-span-1">
+                    <label key={v.key} className="block">
                       <span className="mb-1.5 block text-[12.5px] font-semibold text-alemny-muted">{v.label}</span>
                       <input
                         type="text"
                         value={values[v.key] ?? ""}
                         onChange={(e) => setValues((prev) => ({ ...prev, [v.key]: e.target.value }))}
                         placeholder={v.placeholder}
-                        className="h-11 w-full rounded-xl border border-alemny-purple/30 bg-[#120E22] px-3.5 text-[13.5px] text-white placeholder:text-white/25 transition-colors focus:border-alemny-purple focus:outline-none focus:ring-1 focus:ring-alemny-purple/50"
+                        className="glass-input w-full min-h-[48px] text-base placeholder:text-white/30"
                       />
                     </label>
                   ))}
@@ -460,6 +509,9 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
                   )}
                 </p>
               </div>
+              {includeSignature && (
+                <p className="mt-2 text-xs text-white/45">✨ سيُضاف توقيع علّمني تِك تلقائيًّا في نهاية النص المنسوخ</p>
+              )}
             </div>
 
             {/* نصائح الخبراء */}
@@ -473,6 +525,23 @@ function CustomizeModal({ prompt, onClose }: { prompt: MagicPrompt | null; onClo
                 ))}
               </div>
             )}
+
+            {/* مفتاح توقيع المنصة عند النسخ */}
+            <div className="mb-2.5 flex min-h-[44px] items-center justify-between gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-1.5">
+              <span className="flex min-w-0 items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#C4A2FF]" aria-hidden />
+                <span className="text-xs leading-5 text-white/60">توقيع علّمني تِك عند النسخ</span>
+              </span>
+              <Switch
+                checked={includeSignature}
+                onCheckedChange={onToggleSignature}
+                aria-label="توقيع علّمني تِك عند النسخ"
+                className="h-5 w-9 shrink-0 data-[state=checked]:bg-alemny-purple"
+              />
+            </div>
+            <p className="mb-4 text-xs leading-5 text-white/45">
+              يُضاف توقيع المنصة وروابط المتابعة في نهاية النص المنسوخ — ويمكنك إيقافه بضغطة واحدة
+            </p>
 
             {/* زر النسخ الرئيسي */}
             <button

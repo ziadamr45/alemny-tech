@@ -10,8 +10,17 @@ export const BRAND = {
   handle: "@alemnytech",
   email: "Alemnytech@gmail.com",
   tagline:
-    "المنصة العربية الدائمة التي تنقلك من الكلام النظري إلى النتيجة العملية المبهرة في المقالات، الشروحات، هندسة الأوامر، والمختبر الذكي.",
+    "بوابتك العملية لإتقان أحدث تقنيات الذكاء الاصطناعي، البرمجة، وهندسة الأوامر بخطوات تطبيقية مبسطة.",
 } as const;
+
+/* --------------------------- هوية الفريق --------------------------- */
+
+/** مطوّر المنصة — يظهر في تذييل كل الصفحات */
+export const DEVELOPER_NAME = "زياد عمرو";
+export const DEVELOPER_SITE_URL = "https://ziadamrme.vercel.app";
+
+/** نص زر يوتيوب الثابت في الشريط العلوي */
+export const YOUTUBE_CTA_LABEL = "يوتيوب علَّمني تِك";
 
 export type SocialId = "youtube" | "facebook" | "instagram" | "threads";
 
@@ -75,9 +84,6 @@ export const NAV_LINKS: NavItem[] = [
   { href: "/directory", label: "الدليل التقني المتجدد", shortLabel: "الدليل" },
   { href: "/lab", label: "المختبر الذكي", shortLabel: "المختبر" },
 ];
-
-/** صفحة لوحة التحكم — لا تظهر في الشريط الرئيسي (تُدعى من التذييل) */
-export const ADMIN_PATH = "/admin";
 
 /** أيقونات الأبواب في شبكة Bento الرئيسية (مفاتيح Lucide) */
 export type PortalId = "articles" | "tutorials" | "prompts" | "lab";

@@ -14,5 +14,9 @@ export default async function Page({
   searchParams: Promise<{ cat?: string }>;
 }) {
   const sp = await searchParams;
-  return <ToolsDirectory initialCat={sp.cat} />;
+  return (
+    <div className="alemny-shell w-full py-10 sm:py-14">
+      <ToolsDirectory initialCat={sp.cat} />
+    </div>
+  );
 }
