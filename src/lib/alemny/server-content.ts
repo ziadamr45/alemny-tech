@@ -21,6 +21,8 @@ import type { ArenaModelId, VersusMission } from "./versus";
 import { VERSUS_MISSIONS } from "./versus";
 import type { Tutorial } from "./tutorials";
 import { TUTORIALS } from "./tutorials";
+import type { Article, ArticleCategoryId } from "./articles";
+import { ARTICLES } from "./articles";
 import { SOCIALS } from "./constants";
 
 export type ContentSource = "database" | "fallback";
@@ -212,6 +214,48 @@ export async function getTutorials(): Promise<ContentResult<Tutorial>> {
   }
 }
 
+/* --------------------------------- Articles --------------------------------- */
+
+type ArticleRow = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  readMinutes: number;
+  tags: unknown;
+  content: string;
+  keywords: unknown;
+  featured: boolean;
+  createdAt: Date;
+};
+
+function mapArticleRow(r: ArticleRow): Article {
+  return {
+    id: r.slug,
+    title: r.title,
+    excerpt: r.excerpt,
+    category: r.category as ArticleCategoryId,
+    readMinutes: r.readMinutes,
+    tags: Array.isArray(r.tags) ? (r.tags as string[]) : [],
+    content: r.content,
+    keywords: Array.isArray(r.keywords) ? (r.keywords as string[]) : [],
+    featured: r.featured,
+  };
+}
+
+export async function getArticles(): Promise<ContentResult<Article>> {
+  try {
+    const rows = await db.article.findMany({
+      where: { published: true },
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+    });
+    if (rows.length === 0) throw new Error("articles table empty");
+    return { source: "database", data: rows.map(mapArticleRow) };
+  } catch {
+    return { source: "fallback", data: ARTICLES };
+  }
+}
+
 /* ------------------------------- Copy counter ------------------------------- */
 
 export async function incrementPromptCopies(
@@ -234,23 +278,24 @@ export async function incrementPromptCopies(
 export interface DbHealth {
   database: "connected" | "unavailable";
   latencyMs: number | null;
-  counts: { prompts: number; tools: number; versus: number; tutorials: number } | null;
+  counts: { prompts: number; tools: number; versus: number; tutorials: number; articles: number } | null;
   region: string;
 }
 
 export async function getDbHealth(): Promise<DbHealth> {
   const started = Date.now();
   try {
-    const [prompts, tools, versus, tutorials] = await Promise.all([
+    const [prompts, tools, versus, tutorials, articles] = await Promise.all([
       db.prompt.count(),
       db.aiTool.count(),
       db.versusMission.count(),
       db.tutorial.count(),
+      db.article.count(),
     ]);
     return {
       database: "connected",
       latencyMs: Date.now() - started,
-      counts: { prompts, tools, versus, tutorials },
+      counts: { prompts, tools, versus, tutorials, articles },
       region: process.env.VERCEL_REGION ?? "local",
     };
   } catch {

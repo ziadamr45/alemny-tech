@@ -18,6 +18,7 @@ import {
   Swords as VsIcon,
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
+import { arDigits } from "@/lib/alemny/format";
 import { copyText } from "@/lib/alemny/clipboard";
 import { ARENA_MODELS_META, type VersusMission } from "@/lib/alemny/versus";
 import { missionChallengePrompt, useAlemnyStore } from "@/lib/alemny/store";
@@ -36,10 +37,10 @@ export function VersusArena() {
     <section id="versus" aria-label="حلبة المقارنات" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <SectionHeading
-          eyebrow="النظام الثالث — قارن ثم قرر"
+          eyebrow="المختبر الذكي — قارن ثم قرر"
           eyebrowIcon={Swords}
-          title="حلبة المواجهة:"
-          highlight="Gemini vs Claude vs ChatGPT"
+          title="حلبة المواجهة العملية"
+          highlight="مقارنات مقيسة بالأرقام"
           description="اختر مهمة حقيقية تواجهها، وشاهد النتائج المباشرة: درجات مرجحة، مميزات وعيوب صريحة، سير العمل الموصى به، والفائز بلا مجاملة — ثم انسخ برومبت التحدي الموحد واختبر بنفسك."
         />
 
@@ -165,13 +166,13 @@ function ModelPanel({ model, isWinner, delay }: { model: VersusMission["models"]
           <p className="font-en text-[11px] tracking-wide text-alemny-muted">{meta.nameEn}</p>
         </div>
         <span className="font-display text-3xl font-bold" style={{ color: meta.color }}>
-          {model.score}
+          {arDigits(model.score)}
           <span className="text-sm font-medium text-alemny-muted">/١٠٠</span>
         </span>
       </div>
 
       {/* شريط الدرجة المتحرك */}
-      <div className="mb-5 h-2.5 overflow-hidden rounded-full bg-white/8" role="img" aria-label={`درجة ${meta.name}: ${model.score} من ١٠٠`}>
+      <div className="mb-5 h-2.5 overflow-hidden rounded-full bg-white/8" role="img" aria-label={`درجة ${meta.name}: ${arDigits(model.score)} من ١٠٠`}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${model.score}%` }}

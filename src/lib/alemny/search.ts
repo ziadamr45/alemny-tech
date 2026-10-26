@@ -1,23 +1,26 @@
 /* ============================================================
-   فهرس البحث الشامل (Ctrl + K) — يوحّد البرومبتات والأدوات والشروحات
+   فهرس البحث الشامل (Ctrl + K) — يوحّد كل محتوى المنصة
+   معمارية متعددة الصفحات: كل نتيجة تنقلك إلى مسارها الخاص.
    ============================================================ */
 
 import { MAGIC_PROMPTS, PROMPT_CATEGORIES } from "./prompts";
 import { AI_TOOLS, TOOL_CATEGORIES } from "./tools";
 import { TUTORIALS } from "./tutorials";
+import { ARTICLES, ARTICLE_CATEGORIES } from "./articles";
 import type { MagicPrompt } from "./prompts";
 import type { AITool } from "./tools";
 import type { Tutorial } from "./tutorials";
+import type { Article } from "./articles";
 
-export type SearchKind = "prompt" | "tool" | "tutorial" | "action";
+export type SearchKind = "prompt" | "tool" | "tutorial" | "article" | "action";
 
 export interface SearchItem {
   id: string;
   kind: SearchKind;
   title: string;
   subtitle: string;
-  target: string;
-  event?: { name: string; detail: string };
+  /** مسار الصفحة الهدف (يُفتح عبر useRouter.push) */
+  href: string;
   keywords: string[];
 }
 
@@ -50,14 +53,14 @@ export function buildSearchIndex(
   prompts: MagicPrompt[] = MAGIC_PROMPTS,
   tools: AITool[] = AI_TOOLS,
   tutorials: Tutorial[] = TUTORIALS,
+  articles: Article[] = ARTICLES,
 ): SearchItem[] {
   const promptItems: SearchItem[] = prompts.map((p) => ({
     id: `prompt-${p.id}`,
     kind: "prompt" as const,
     title: p.title,
     subtitle: `برومبت جاهز للنسخ — ${PROMPT_CATEGORIES.find((c) => c.id === p.category)?.label ?? ""}`,
-    target: "#prompts",
-    event: { name: "alemny:set-prompt-tab", detail: p.category },
+    href: `/prompts?cat=${p.category}&focus=${p.id}`,
     keywords: p.keywords,
   }));
 
@@ -66,8 +69,7 @@ export function buildSearchIndex(
     kind: "tool" as const,
     title: `${t.name} — ${t.nameEn}`,
     subtitle: `أداة موثقة — ${TOOL_CATEGORIES.find((c) => c.id === t.category)?.label ?? ""}`,
-    target: "#tools",
-    event: { name: "alemny:set-tool-filter", detail: t.category },
+    href: `/directory?cat=${t.category}`,
     keywords: t.keywords,
   }));
 
@@ -76,9 +78,18 @@ export function buildSearchIndex(
     kind: "tutorial" as const,
     title: t.title,
     subtitle: `شرح عملي — ${t.steps.length} خطوات • ${t.duration}`,
-    target: "#tutorials",
+    href: `/tutorials?focus=${t.id}`,
     keywords: t.keywords,
   }));
 
-  return [...promptItems, ...toolItems, ...tutorialItems];
+  const articleItems: SearchItem[] = articles.map((a) => ({
+    id: `article-${a.id}`,
+    kind: "article" as const,
+    title: a.title,
+    subtitle: `مقال — ${ARTICLE_CATEGORIES.find((c) => c.id === a.category)?.label ?? ""}`,
+    href: `/articles?focus=${a.id}`,
+    keywords: a.keywords,
+  }));
+
+  return [...articleItems, ...promptItems, ...toolItems, ...tutorialItems];
 }

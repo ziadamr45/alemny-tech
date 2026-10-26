@@ -24,6 +24,8 @@ import type { VersusMission } from "./versus";
 import { VERSUS_MISSIONS } from "./versus";
 import type { Tutorial } from "./tutorials";
 import { TUTORIALS } from "./tutorials";
+import type { Article } from "./articles";
+import { ARTICLES } from "./articles";
 import { buildChallengePrompt } from "./versus";
 
 export type LiveSource = "static" | "database";
@@ -55,12 +57,15 @@ interface AlemnyState {
   tools: AITool[];
   missions: VersusMission[];
   tutorials: Tutorial[];
+  articles: Article[];
   source: LiveSource;
   /** true once the hydration attempt finished (success OR fallback) */
   hydrated: boolean;
   hydrating: boolean;
   hydratedAt: number | null;
   hydrate: () => Promise<void>;
+  /** force re-fetch from Neon (used after admin mutations) */
+  refresh: () => Promise<void>;
   /** Optimistic UI bump for copiesCount */
   bumpCopies: (slug: string) => void;
   /** Fire-and-forget POST to Neon + optimistic bump */
@@ -72,6 +77,7 @@ export const useAlemnyStore = create<AlemnyState>((set, get) => ({
   tools: AI_TOOLS,
   missions: VERSUS_MISSIONS,
   tutorials: TUTORIALS,
+  articles: ARTICLES,
   source: "static",
   hydrated: false,
   hydrating: false,
@@ -81,11 +87,12 @@ export const useAlemnyStore = create<AlemnyState>((set, get) => ({
     if (get().hydrated || get().hydrating) return;
     set({ hydrating: true });
     try {
-      const [promptsRes, toolsRes, versusRes, tutorialsRes] = await Promise.all([
+      const [promptsRes, toolsRes, versusRes, tutorialsRes, articlesRes] = await Promise.all([
         fetchEnvelope<MagicPrompt>("/api/prompts"),
         fetchEnvelope<AITool>("/api/tools"),
         fetchEnvelope<VersusMission>("/api/versus"),
         fetchEnvelope<Tutorial>("/api/tutorials"),
+        fetchEnvelope<Article>("/api/articles"),
       ]);
 
       const next: Partial<AlemnyState> = { hydrated: true, hydrating: false, hydratedAt: Date.now() };
@@ -107,12 +114,21 @@ export const useAlemnyStore = create<AlemnyState>((set, get) => ({
         next.tutorials = tutorialsRes.data;
         live = true;
       }
+      if (articlesRes && articlesRes.source === "database") {
+        next.articles = articlesRes.data;
+        live = true;
+      }
 
       next.source = live ? "database" : "static";
       set(next);
     } catch {
       set({ hydrated: true, hydrating: false, hydratedAt: Date.now(), source: "static" });
     }
+  },
+
+  refresh: async () => {
+    set({ hydrated: false });
+    await get().hydrate();
   },
 
   bumpCopies: (slug) =>

@@ -93,6 +93,29 @@ model VersusMission {
 }
 
 /* ------------------------------------------------------------
+   المقالات والأخبار التقنية — Evergreen Tech Articles
+   ------------------------------------------------------------ */
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique // stable key, e.g. "ai-agents-2026"
+  title       String
+  excerpt     String   @db.Text // the deck / subtitle
+  category    String // ai | dev | security | future
+  readMinutes Int      @default(5)
+  tags        Json // string[]
+  content     String   @db.Text // full article body (## headings, - bullets, paragraphs)
+  keywords    Json // string[] search keywords
+  published   Boolean  @default(true)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([published])
+  @@index([featured])
+}
+
+/* ------------------------------------------------------------
    أكاديمية الشروحات العملية — Tutorials Hub
    ------------------------------------------------------------ */
 model Tutorial {

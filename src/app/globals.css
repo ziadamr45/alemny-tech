@@ -325,6 +325,219 @@ body {
   font-weight: 700;
 }
 
+/* ==================================================================
+   ULTRA-LUXURY 3D SPATIAL SYSTEM — Volumetric Neon Glass
+   (multi-layered cards, gradient borders, specular reflections,
+    ambient spotlights, and 3D glass orbs) — V2 design language
+   ================================================================== */
+
+/* ---------- بطاقة زجاجية ثلاثية الأبعاد متعددة الطبقات ---------- */
+.card-3d {
+  position: relative;
+  background: linear-gradient(165deg, rgba(22, 17, 40, 0.92) 0%, rgba(11, 8, 20, 0.88) 55%, rgba(7, 6, 11, 0.92) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+  box-shadow:
+    0 24px 60px -24px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(128, 70, 233, 0.12);
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+/* الحد المتدرج العلوي + انعكاس الزجاج */
+.card-3d::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(160deg, rgba(168, 85, 247, 0.55), rgba(128, 70, 233, 0.12) 38%, rgba(56, 189, 248, 0.08) 65%, rgba(168, 85, 247, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* لمعة الحافة العلوية */
+.card-3d::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  pointer-events: none;
+}
+.card-3d:hover {
+  transform: translateY(-6px);
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow:
+    0 34px 80px -28px rgba(128, 70, 233, 0.55),
+    0 0 0 1px rgba(168, 85, 247, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 40px rgba(128, 70, 233, 0.07);
+}
+
+/* بقعة ضوء محيطية داخلية (#8046E9 بعتامة ١٥٪ وضبابية ١٢٠px) */
+.ambient-spot {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(128, 70, 233, 0.32), rgba(128, 70, 233, 0.08) 55%, transparent 75%);
+  filter: blur(52px);
+  opacity: 0.75;
+  transition: opacity 0.4s ease;
+}
+.card-3d:hover .ambient-spot {
+  opacity: 1;
+}
+
+/* ---------- بطاقة Bento ثلاثية الأبعاد ---------- */
+.bento-3d {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  isolation: isolate;
+}
+.bento-3d .bento-art {
+  position: absolute;
+  inset-inline-end: -12%;
+  top: -18%;
+  width: 62%;
+  height: 96%;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, var(--art-c1, rgba(168, 85, 247, 0.4)), var(--art-c2, rgba(128, 70, 233, 0.12)) 55%, transparent 78%);
+  filter: blur(30px);
+  transform: rotate(12deg);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.bento-3d:hover .bento-art {
+  transform: rotate(0deg) scale(1.08);
+  opacity: 1;
+}
+.bento-3d .bento-ring {
+  position: absolute;
+  inset-inline-end: 4%;
+  bottom: -38%;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  border: 1.5px dashed rgba(168, 85, 247, 0.35);
+  animation: alemny-spin-slow 40s linear infinite;
+  pointer-events: none;
+}
+
+/* ---------- الكرة الزجاجية ثلاثية الأبعاد للمنصات ---------- */
+.orb-3d {
+  position: relative;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    radial-gradient(circle at 30% 28%, var(--orb-hi, rgba(255, 255, 255, 0.28)), transparent 42%),
+    radial-gradient(circle at 32% 30%, var(--orb-c1, rgba(168, 85, 247, 0.45)), var(--orb-c2, rgba(18, 14, 34, 0.95)) 74%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.35),
+    inset 0 -4px 14px rgba(128, 70, 233, 0.6),
+    inset 0 0 22px rgba(0, 0, 0, 0.45),
+    0 20px 50px -10px rgba(128, 70, 233, 0.45);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+  transform-style: preserve-3d;
+}
+/* اللمعان الزجاجي العلوي Specular highlight */
+.orb-3d::before {
+  content: "";
+  position: absolute;
+  top: 7%;
+  inset-inline: 18%;
+  height: 34%;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+/* حافة النيون السفلية Rim light */
+.orb-3d::after {
+  content: "";
+  position: absolute;
+  bottom: 5%;
+  inset-inline: 14%;
+  height: 22%;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.4), transparent 72%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+.orb-3d:hover {
+  transform: translateY(-10px) scale(1.06);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 16px rgba(128, 70, 233, 0.75),
+    inset 0 0 26px rgba(0, 0, 0, 0.45),
+    0 30px 70px -12px rgba(128, 70, 233, 0.6);
+}
+
+/* ---------- شريحة نيون متوهجة للترويسات ---------- */
+.neon-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: linear-gradient(135deg, rgba(128, 70, 233, 0.18), rgba(168, 85, 247, 0.08));
+  box-shadow:
+    0 0 18px rgba(128, 70, 233, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* حلقة مدارية ثلاثية الأبعاد حول الشعار */
+.hero-ring {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#07060b, #07060b) padding-box,
+    conic-gradient(from var(--ring-from, 0deg), rgba(128, 70, 233, 0.9), rgba(56, 189, 248, 0.35), rgba(168, 85, 247, 0.9), rgba(128, 70, 233, 0.15), rgba(128, 70, 233, 0.9)) border-box;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@property --ring-from {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes ring-rotate {
+  to {
+    --ring-from: 360deg;
+  }
+}
+.animate-ring {
+  animation: ring-rotate 9s linear infinite;
+}
+.animate-ring-rev {
+  animation: ring-rotate 14s linear infinite reverse;
+}
+
+/* نافذة قراءة المقالة الزجاجية */
+.reader-glass {
+  background: linear-gradient(170deg, rgba(20, 16, 38, 0.96), rgba(9, 7, 17, 0.97));
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  box-shadow:
+    0 40px 120px -30px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
 /* ------- Reduced motion ------- */
 @media (prefers-reduced-motion: reduce) {
   .animate-orbit,

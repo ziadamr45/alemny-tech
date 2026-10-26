@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Readex_Pro, Cairo, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { SiteChrome } from "@/components/alemny/site-chrome";
 
 const readexPro = Readex_Pro({
   subsets: ["arabic", "latin"],
@@ -28,23 +29,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://alemnytech.com"),
+  metadataBase: new URL("https://alemny-tech.vercel.app"),
   title: "علَّمني تِك | كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي",
   description:
-    "المنصة العربية المتكاملة من علَّمني تِك: مكتبة برومبتات هندسية جاهزة للنسخ، دليل أدوات الذكاء الاصطناعي الموثقة ٢٠٢٦، حلبة مقارنات Gemini وClaude وChatGPT، صانع البرومبتات الذكي، وأكاديمية الشروحات العملية.",
+    "المنصة العربية الشاملة والدائمة: مقالات تقنية معمّقة، شروحات عملية خطوة بخطوة، مكتبة هندسة الأوامر الجاهزة للنسخ، الدليل التقني المتجدد، والمختبر الذكي للأدوات التفاعلية — كل ذلك بالعربية.",
   keywords: [
     "علَّمني تِك",
     "Alemny Tech",
     "الذكاء الاصطناعي بالعربي",
+    "التكنولوجيا بالعربية",
+    "مقالات تقنية",
+    "شروحات تقنية",
+    "هندسة الأوامر",
     "برومبتات جاهزة",
-    "NotebookLM",
-    "Gemini",
-    "Claude 5.5",
-    "ChatGPT",
-    "Veo 3.1",
-    "Cursor Agents",
-    "مكتبة برومبتات عربية",
-    "أدوات الذكاء الاصطناعي 2026",
+    "الدليل التقني",
+    "تعلم البرمجة",
   ],
   authors: [{ name: "Alemny Tech — علَّمني تِك" }],
   icons: {
@@ -54,8 +53,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "علَّمني تِك — كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي",
     description:
-      "من الكلام النظري إلى النتيجة العملية المبهرة: برومبتات جاهزة للنسخ، أدوات موثقة، مقارنات حية، وصانع برومبتات ذكي — كل ذلك بالعربية.",
-    url: "https://www.instagram.com/alemnytech",
+      "المنصة العربية الشاملة: مقالات، شروحات عملية، مكتبة هندسة أوامر، دليل تقني متجدد، ومختبر ذكي — من الكلام النظري إلى النتيجة العملية المبهرة.",
+    url: "https://alemny-tech.vercel.app",
     siteName: "علَّمني تِك — Alemny Tech",
     locale: "ar_AR",
     type: "website",
@@ -85,7 +84,7 @@ export default function RootLayout({
       <body
         className={`${readexPro.variable} ${cairo.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased bg-[#07060B] text-white overflow-x-hidden`}
       >
-        {children}
+        <SiteChrome>{children}</SiteChrome>
         <Toaster
           position="bottom-right"
           toastOptions={{

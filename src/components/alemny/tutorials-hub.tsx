@@ -15,25 +15,32 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
+import { arNum } from "@/lib/alemny/format";
 import { type Tutorial } from "@/lib/alemny/tutorials";
 import { SOCIALS } from "@/lib/alemny/constants";
 import { useAlemnyStore } from "@/lib/alemny/store";
 
 const TUTORIAL_ICONS = { notebook: NotebookPen, cursor: SquareTerminal, veo: Clapperboard } as const;
 
-export function TutorialsHub() {
+export function TutorialsHub({ focusSlug }: { focusSlug?: string }) {
   const tutorials = useAlemnyStore((s) => s.tutorials);
-  const [activeId, setActiveId] = useState(tutorials[0].id);
+  const [activeId, setActiveId] = useState(focusSlug ?? tutorials[0]?.id ?? "");
+  /* فتح شرح محدد عبر ?focus= — تعديل الحالة أثناء التصيير */
+  const [prevFocus, setPrevFocus] = useState<string | undefined>(focusSlug);
+  if (focusSlug !== prevFocus) {
+    setPrevFocus(focusSlug);
+    if (focusSlug && tutorials.some((t) => t.id === focusSlug)) setActiveId(focusSlug);
+  }
   const tutorial = tutorials.find((t) => t.id === activeId) ?? tutorials[0];
 
   return (
     <section id="tutorials" aria-label="أكاديمية الشروحات العملية" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <SectionHeading
-          eyebrow="النظام الخامس — شاهد وطبّق فورًا"
+          eyebrow="أكاديمية الشروحات — شاهد وطبّق فورًا"
           eyebrowIcon={GraduationCap}
-          title="أكاديمية الشروحات"
-          highlight="العملية خطوة بخطوة"
+          title="الشروحات العملية"
+          highlight="خطوة بخطوة بالتفصيل"
           description="دليل تنفيذ مصور لكل نظام: اتبع الخطوات بالترتيب، طبّق كل نقطة فورًا، وشاهد الشرح الكامل فيديو على قناة علَّمني تِك."
         />
 
@@ -77,7 +84,7 @@ export function TutorialsHub() {
                   <h3 className="text-xl font-bold leading-9 text-white md:text-2xl">{tutorial.title}</h3>
                   <p className="mt-2 text-[13.5px] leading-7 text-alemny-muted">{tutorial.subtitle}</p>
                   <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                    <Meta icon={ListOrdered} text={`${tutorial.steps.length} خطوات`} />
+                    <Meta icon={ListOrdered} text={`${arNum(tutorial.steps.length)} خطوات`} />
                     <Meta icon={Clock} text={`المدة: ${tutorial.duration}`} />
                     <Meta icon={BarChart3} text={`المستوى: ${tutorial.level}`} />
                   </div>

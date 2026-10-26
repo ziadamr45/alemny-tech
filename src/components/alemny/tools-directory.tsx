@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Search, ExternalLink, Check, Target, Gift, SearchX, Sparkles } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { ToolIconGlyph } from "./icons";
-import { EVT_SET_TOOL_FILTER } from "@/lib/alemny/constants";
+import { arNum } from "@/lib/alemny/format";
 import { useAlemnyStore } from "@/lib/alemny/store";
 import {
   TOOL_CATEGORIES,
@@ -18,21 +18,11 @@ import {
 type CatFilter = "all" | ToolCategoryId;
 type PriceFilter = "all" | ToolPricing;
 
-export function ToolsDirectory() {
-  const [cat, setCat] = useState<CatFilter>("all");
+export function ToolsDirectory({ initialCat }: { initialCat?: string }) {
+  const [cat, setCat] = useState<CatFilter>((initialCat as CatFilter) ?? "all");
   const [price, setPrice] = useState<PriceFilter>("all");
   const [query, setQuery] = useState("");
   const tools = useAlemnyStore((s) => s.tools);
-
-  /* استقبال تصفية من البحث الشامل */
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
-      setCat(detail as CatFilter);
-    };
-    window.addEventListener(EVT_SET_TOOL_FILTER, handler);
-    return () => window.removeEventListener(EVT_SET_TOOL_FILTER, handler);
-  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -59,10 +49,10 @@ export function ToolsDirectory() {
     <section id="tools" aria-label="دليل أدوات الذكاء الاصطناعي" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <SectionHeading
-          eyebrow="النظام الثاني — موثق ومراجع يدويًّا"
+          eyebrow="الدليل التقني المتجدد — موثق ومراجع يدويًّا"
           eyebrowIcon={BadgeCheck}
-          title="دليل أدوات الذكاء الاصطناعي"
-          highlight="الشامل ٢٠٢٦"
+          title="الدليل التقني المتجدد"
+          highlight="أدوات مُختبرة وموثقة"
           description="ثماني أدوات اختبرناها فعليًّا في قناة علَّمني تِك: الميزات الحقيقية، سيناريو استخدام عملي، ورابط رسمي مباشر — بلا إعلانات مدفوعة ولا ترشيحات وهمية."
         />
 
@@ -114,7 +104,7 @@ export function ToolsDirectory() {
               />
             </div>
             <span className="hidden shrink-0 text-xs text-alemny-muted sm:block">
-              عرض <span className="font-bold text-white">{filtered.length}</span> من {tools.length} أدوات
+              عرض <span className="font-bold text-white">{arNum(filtered.length)}</span> من {arNum(tools.length)} أدوات
             </span>
           </div>
         </div>
@@ -168,7 +158,7 @@ function FilterChip({
       {label}
       {typeof count === "number" && (
         <span className={`mr-1.5 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] ${active ? "bg-white/20 text-white" : "bg-alemny-purple/20 text-alemny-lilac"}`}>
-          {count}
+          {arNum(count)}
         </span>
       )}
     </button>

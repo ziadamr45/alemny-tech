@@ -1,18 +1,18 @@
 "use client";
 
+/* ============================================================
+   الهيكل المشترك لكل صفحات المنصة (V2 — معمارية متعددة الصفحات)
+   Navbar ثابت + البحث الشامل + المحتوى + التذييل + زر العودة،
+   مع ترطيب المحتوى الحي من Neon PostgreSQL مرة واحدة.
+   ============================================================ */
+
 import { useEffect, useState } from "react";
-import { Header } from "@/components/alemny/header";
+import { Navbar } from "@/components/alemny/navbar";
 import { SearchModal } from "@/components/alemny/search-modal";
-import { Hero } from "@/components/alemny/hero";
-import { PromptVault } from "@/components/alemny/prompt-vault";
-import { ToolsDirectory } from "@/components/alemny/tools-directory";
-import { VersusArena } from "@/components/alemny/versus-arena";
-import { PromptBuilder } from "@/components/alemny/prompt-builder";
-import { TutorialsHub } from "@/components/alemny/tutorials-hub";
 import { CommunityFooter, BackToTop } from "@/components/alemny/footer";
 import { useAlemnyStore } from "@/lib/alemny/store";
 
-export function PlatformShell() {
+export function SiteChrome({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const hydrate = useAlemnyStore((s) => s.hydrate);
 
@@ -23,17 +23,10 @@ export function PlatformShell() {
 
   return (
     <div className="aurora relative flex min-h-screen flex-col overflow-x-clip">
-      <Header onOpenSearch={() => setSearchOpen(true)} />
+      <Navbar onOpenSearch={() => setSearchOpen(true)} />
       <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
 
-      <main className="relative z-10 flex-1">
-        <Hero />
-        <PromptVault />
-        <ToolsDirectory />
-        <VersusArena />
-        <PromptBuilder />
-        <TutorialsHub />
-      </main>
+      <main className="relative z-10 flex-1">{children}</main>
 
       <CommunityFooter />
       <BackToTop />

@@ -6,6 +6,7 @@
      • 8 verified 2026 AI tools
      • 4 Versus missions (Gemini vs Claude 5.5 vs ChatGPT)
      • 3 step-by-step tutorials
+     • 6 evergreen tech/AI articles
    Idempotent: safe to run repeatedly (upsert by slug).
    Live counters (copiesCount) are NOT reset on re-seed.
    Run:  npx prisma db seed   (or: bun db:seed)
@@ -17,6 +18,7 @@ import { MAGIC_PROMPTS } from "../src/lib/alemny/prompts";
 import { AI_TOOLS } from "../src/lib/alemny/tools";
 import { VERSUS_MISSIONS, buildChallengePrompt } from "../src/lib/alemny/versus";
 import { TUTORIALS } from "../src/lib/alemny/tutorials";
+import { ARTICLES } from "../src/lib/alemny/articles";
 import { SOCIALS } from "../src/lib/alemny/constants";
 
 const prisma = new PrismaClient();
@@ -154,6 +156,25 @@ async function seedTutorials() {
   return TUTORIALS.length;
 }
 
+async function seedArticles() {
+  for (const a of ARTICLES) {
+    const data = {
+      slug: a.id,
+      title: a.title,
+      excerpt: a.excerpt,
+      category: a.category,
+      readMinutes: a.readMinutes,
+      tags: a.tags,
+      content: a.content,
+      keywords: a.keywords,
+      published: true,
+      featured: a.featured ?? false,
+    };
+    await prisma.article.upsert({ where: { slug: a.id }, update: data, create: data });
+  }
+  return ARTICLES.length;
+}
+
 async function main() {
   const started = Date.now();
   console.log("\n🌱  علَّمني تِك — seeding Neon PostgreSQL …\n");
@@ -162,12 +183,14 @@ async function main() {
   const tools = await seedTools();
   const versus = await seedVersus();
   const tutorials = await seedTutorials();
+  const articles = await seedArticles();
 
-  const [dbPrompts, dbTools, dbVersus, dbTutorials] = await Promise.all([
+  const [dbPrompts, dbTools, dbVersus, dbTutorials, dbArticles] = await Promise.all([
     prisma.prompt.count(),
     prisma.aiTool.count(),
     prisma.versusMission.count(),
     prisma.tutorial.count(),
+    prisma.article.count(),
   ]);
 
   console.log("✅ Seed complete:");
@@ -177,7 +200,13 @@ async function main() {
   console.log(`   • Tutorials : ${dbTutorials}/${tutorials} rows`);
   console.log(`⏱  ${Date.now() - started}ms\n`);
 
-  if (dbPrompts < prompts || dbTools < tools || dbVersus < versus || dbTutorials < tutorials) {
+  if (
+    dbPrompts < prompts ||
+    dbTools < tools ||
+    dbVersus < versus ||
+    dbTutorials < tutorials ||
+    dbArticles < articles
+  ) {
     throw new Error("Row count mismatch — seeding incomplete!");
   }
 }

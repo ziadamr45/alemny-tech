@@ -1,5 +1,6 @@
 /* ============================================================
    علَّمني تِك — Alemny Tech | الثوابت الرسمية للمنصة
+   معمارية متعددة الصفحات: كل قسم مساره الخاص.
    ============================================================ */
 
 export const BRAND = {
@@ -9,7 +10,7 @@ export const BRAND = {
   handle: "@alemnytech",
   email: "Alemnytech@gmail.com",
   tagline:
-    "المنصة العربية المتكاملة التي تنقلك من الكلام النظري إلى النتيجة العملية المبهرة في المذاكرة، البرمجة، التصميم، وصناعة المحتوى.",
+    "المنصة العربية الدائمة التي تنقلك من الكلام النظري إلى النتيجة العملية المبهرة في المقالات، الشروحات، هندسة الأوامر، والمختبر الذكي.",
 } as const;
 
 export type SocialId = "youtube" | "facebook" | "instagram" | "threads";
@@ -54,23 +55,29 @@ export const SOCIALS: SocialLink[] = [
     labelEn: "Threads",
     url: "https://www.threads.com/@alemnytech",
     color: "#E8E4F4",
-    description: "نقاشات وأخبار الذكاء الاصطناعي",
+    description: "نقاشات وأخبار التقنية",
   },
 ];
 
-export type SectionId = "home" | "prompts" | "tools" | "versus" | "builder" | "tutorials";
+/* ------------------------- التنقل بين الصفحات ------------------------- */
 
-export const NAV_LINKS: { id: SectionId; label: string; shortLabel: string }[] = [
-  { id: "home", label: "الرئيسية", shortLabel: "الرئيسية" },
-  { id: "prompts", label: "مكتبة البرومبتات السحرية", shortLabel: "البرومبتات" },
-  { id: "tools", label: "دليل أدوات الذكاء الاصطناعي", shortLabel: "الأدوات" },
-  { id: "versus", label: "حلبة المقارنات Versus", shortLabel: "Versus" },
-  { id: "builder", label: "صانع البرومبتات الذكي", shortLabel: "الصانع الذكي" },
-  { id: "tutorials", label: "الشروحات العملية", shortLabel: "الشروحات" },
+export interface NavItem {
+  href: string;
+  label: string;
+  shortLabel: string;
+}
+
+export const NAV_LINKS: NavItem[] = [
+  { href: "/", label: "الرئيسية", shortLabel: "الرئيسية" },
+  { href: "/articles", label: "المقالات والأخبار التقنية", shortLabel: "المقالات" },
+  { href: "/tutorials", label: "الشروحات العملية", shortLabel: "الشروحات" },
+  { href: "/prompts", label: "مكتبة هندسة الأوامر", shortLabel: "البرومبتات" },
+  { href: "/directory", label: "الدليل التقني المتجدد", shortLabel: "الدليل" },
+  { href: "/lab", label: "المختبر الذكي", shortLabel: "المختبر" },
 ];
 
-export const SECTION_IDS: SectionId[] = ["home", "prompts", "tools", "versus", "builder", "tutorials"];
+/** صفحة لوحة التحكم — لا تظهر في الشريط الرئيسي (تُدعى من التذييل) */
+export const ADMIN_PATH = "/admin";
 
-/** أحداث التواصل بين البحث الشامل والأقسام */
-export const EVT_SET_PROMPT_TAB = "alemny:set-prompt-tab";
-export const EVT_SET_TOOL_FILTER = "alemny:set-tool-filter";
+/** أيقونات الأبواب في شبكة Bento الرئيسية (مفاتيح Lucide) */
+export type PortalId = "articles" | "tutorials" | "prompts" | "lab";

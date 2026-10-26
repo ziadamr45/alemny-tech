@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Search, Sparkles, Wrench, GraduationCap, Youtube, AtSign, ArrowLeft, Mail } from "lucide-react";
+import { Search, Sparkles, Wrench, GraduationCap, Youtube, AtSign, ArrowLeft, Mail, Newspaper } from "lucide-react";
 import { BRAND, SOCIALS } from "@/lib/alemny/constants";
 import { buildSearchIndex, filterSearchItems, type SearchItem, type SearchKind } from "@/lib/alemny/search";
 import { useAlemnyStore } from "@/lib/alemny/store";
@@ -17,32 +18,34 @@ const KIND_META: Record<SearchKind, { label: string; color: string }> = {
   prompt: { label: "برومبت", color: "#A855F7" },
   tool: { label: "أداة", color: "#38BDF8" },
   tutorial: { label: "شرح", color: "#34D399" },
+  article: { label: "مقال", color: "#FBBF24" },
   action: { label: "رابط", color: "#D7D2E6" },
 };
 
 export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [query, setQuery] = useState("");
+  const router = useRouter();
   const prompts = useAlemnyStore((s) => s.prompts);
   const tools = useAlemnyStore((s) => s.tools);
   const tutorials = useAlemnyStore((s) => s.tutorials);
-  const index = useMemo(() => buildSearchIndex(prompts, tools, tutorials), [prompts, tools, tutorials]);
+  const articles = useAlemnyStore((s) => s.articles);
+  const index = useMemo(() => buildSearchIndex(prompts, tools, tutorials, articles), [prompts, tools, tutorials, articles]);
   const results = useMemo(() => filterSearchItems(index, query), [index, query]);
 
   const grouped = useMemo(() => {
-    const g: Record<SearchKind, SearchItem[]> = { prompt: [], tool: [], tutorial: [], action: [] };
+    const g: Record<SearchKind, SearchItem[]> = { prompt: [], tool: [], tutorial: [], article: [], action: [] };
     results.forEach((r) => g[r.kind].push(r));
     return g;
   }, [results]);
 
-  /* عند اختيار نتيجة: انتقال سلس + إشعار القسم المعني بالتصفية */
+  /* عند اختيار نتيجة: انتقال إلى صفحتها المخصصة */
   const go = (item: SearchItem) => {
     onOpenChange(false);
-    if (item.event) {
-      window.dispatchEvent(new CustomEvent(item.event.name, { detail: item.event.detail }));
+    if (item.href.startsWith("http")) {
+      window.open(item.href, "_blank", "noopener");
+      return;
     }
-    requestAnimationFrame(() => {
-      document.querySelector(item.target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    router.push(item.href);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -85,6 +88,20 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                   جرّب كلمات مثل: مذاكرة، برومبت، Claude، فيديو، سيرة ذاتية...
                 </p>
               </CommandEmpty>
+            )}
+
+            {grouped.article.length > 0 && (
+              <CommandGroup
+                heading={
+                  <span className="flex items-center gap-2 text-xs font-bold text-alemny-amber">
+                    <Newspaper className="h-3.5 w-3.5" aria-hidden /> المقالات والأخبار التقنية
+                  </span>
+                }
+              >
+                {grouped.article.map((item) => (
+                  <ResultRow key={item.id} item={item} onSelect={() => go(item)} />
+                ))}
+              </CommandGroup>
             )}
 
             {grouped.prompt.length > 0 && (

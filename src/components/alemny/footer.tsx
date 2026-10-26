@@ -1,10 +1,11 @@
 "use client";
 
-import { Mail, Heart, ArrowUp, Send } from "lucide-react";
+import { Mail, Heart, ArrowUp, Send, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlemnyLogo, PlatformIcon } from "./logo";
-import { BRAND, NAV_LINKS, SOCIALS } from "@/lib/alemny/constants";
+import { BRAND, NAV_LINKS, SOCIALS, ADMIN_PATH } from "@/lib/alemny/constants";
 import { useAlemnyStore } from "@/lib/alemny/store";
 
 export function CommunityFooter() {
@@ -33,7 +34,12 @@ export function CommunityFooter() {
               <AlemnyLogo size={64} glow />
               <div>
                 <p className="font-display text-2xl font-bold text-white">{BRAND.ar}</p>
-                <p className="font-en text-xs tracking-widest text-alemny-purple">{BRAND.en} — {BRAND.handle}</p>
+                <p className="font-en text-xs tracking-widest text-alemny-purple">
+                  {BRAND.en} —{" "}
+                  <span dir="ltr" className="inline-block">
+                    {BRAND.handle}
+                  </span>
+                </p>
               </div>
             </div>
             <p className="mb-6 max-w-md text-[13.5px] leading-8 text-alemny-muted">{BRAND.slogan} — محتوى عربي أصيل ينقلك من النظرية إلى النتيجة.</p>
@@ -83,12 +89,23 @@ export function CommunityFooter() {
         </div>
 
         {/* روابط سريعة */}
-        <nav className="mb-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 border-t border-alemny-purple/15 pt-8" aria-label="روابط سريعة">
+        <nav className="mb-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 border-t border-alemny-purple/15 pt-8" aria-label="روابط سريعة لصفحات المنصة">
           {NAV_LINKS.map((link) => (
-            <a key={link.id} href={`#${link.id}`} className="text-[13px] font-semibold text-alemny-muted transition-colors hover:text-white">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-[13px] font-semibold text-alemny-muted transition-colors hover:text-white"
+            >
               {link.label}
-            </a>
+            </Link>
           ))}
+          <Link
+            href={ADMIN_PATH}
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-alemny-muted transition-colors hover:text-alemny-emerald"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-alemny-emerald" aria-hidden />
+            لوحة التحكم
+          </Link>
         </nav>
 
         {/* الشريط السفلي */}
@@ -114,7 +131,9 @@ export function CommunityFooter() {
           <p className="flex items-center gap-1.5 text-[12.5px] text-alemny-muted">
             صُنع بشغف لجيل التقنية العربية
             <Heart className="h-3.5 w-3.5 fill-alemny-purple text-alemny-purple" aria-hidden />
-            <span className="font-en text-alemny-purple">{BRAND.handle}</span>
+            <span dir="ltr" className="inline-block font-en text-alemny-purple">
+              {BRAND.handle}
+            </span>
           </p>
         </div>
       </div>

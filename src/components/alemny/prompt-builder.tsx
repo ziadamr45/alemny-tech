@@ -18,6 +18,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
+import { arNum } from "@/lib/alemny/format";
 import { copyText } from "@/lib/alemny/clipboard";
 import {
   BUILDER_FIELDS,
@@ -89,10 +90,10 @@ export function PromptBuilder() {
     <section id="builder" aria-label="صانع البرومبتات الذكي" className="relative py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <SectionHeading
-          eyebrow="النظام الرابع — برومبت على مقاسك"
+          eyebrow="المختبر الذكي — برومبت على مقاسك"
           eyebrowIcon={FlaskConical}
-          title="مختبر صناعة البرومبت:"
-          highlight="المولّد الهندسي الذكي"
+          title="صانع الأوامر الهندسي"
+          highlight="المولّد الذكي المتدرج"
           description="اختر مجالك، النموذج المستهدف، هدفك، وعمق الصياغة — وسيبني لك المختبر برومبتًا هندسيًّا كاملًا: الدور، السياق، الخطوات، القيود، وصيغة المخرجات. جاهز للنسخ في ثوانٍ."
         />
 
@@ -232,7 +233,7 @@ export function PromptBuilder() {
               </p>
               {output && (
                 <span className="rounded-full border border-alemny-purple/35 bg-alemny-purple/10 px-3 py-1 text-[11px] font-bold text-alemny-lilac">
-                  {output.length} حرفًا • ٥ أقسام
+                  {arNum(output.length)} حرفًا • ٥ أقسام
                 </span>
               )}
             </div>

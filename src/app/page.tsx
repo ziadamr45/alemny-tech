@@ -1,11 +1,12 @@
-import { PlatformShell } from "@/components/alemny/platform-shell";
+import type { Metadata } from "next";
+import { HomeLanding } from "@/components/alemny/home-landing";
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "علَّمني تِك — Alemny Tech",
   alternateName: "Alemny Tech",
-  description: "كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي — منصة عربية للبرومبتات والأدوات والشروحات العملية.",
+  description: "كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي — منصة عربية دائمة للمقالات والشروحات وهندسة الأوامر.",
   email: "Alemnytech@gmail.com",
   sameAs: [
     "https://youtube.com/@alemnytech?si=oFjESFXnUTG4EP8B",
@@ -15,11 +16,18 @@ const jsonLd = {
   ],
 };
 
+export const metadata: Metadata = {
+  title: "علَّمني تِك | كل ما يهمك في عالم التكنولوجيا والذكاء الاصطناعي",
+  description:
+    "المنصة العربية الشاملة: مقالات تقنية، شروحات عملية خطوة بخطوة، مكتبة هندسة الأوامر، الدليل التقني المتجدد، والمختبر الذكي — بالعربية ومن صميم التجربة.",
+  alternates: { canonical: "/" },
+};
+
 export default function Page() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <PlatformShell />
+      <HomeLanding />
     </>
   );
 }
