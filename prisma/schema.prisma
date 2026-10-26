@@ -132,6 +132,47 @@ model PushSubscription {
 }
 
 /* ------------------------------------------------------------
+   جداول بوابة الإدارة السيادية (alemny-tech-admin)
+   نفس قاعدة Neon — تُدار من التطبيق المنفصل، وموجودة هنا
+   حتى لا يحذفها أي db push من هذا المشروع أبدًا.
+   ------------------------------------------------------------ */
+model AdminSecurityConfig {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String
+  totpSecret         String    @default("") // base32, RFC 6238
+  totpEnabled        Boolean   @default(false)
+  activeSessionToken String    @default("") // single-device lock
+  activeDeviceHash   String    @default("") // sha256(userAgent + ip)
+  lastLoginAt        DateTime?
+  lastSeenAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model AdminLoginLog {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  ip         String   @default("")
+  userAgent  String   @default("")
+  deviceType String   @default("unknown") // mobile | tablet | desktop | bot | unknown
+  status     String // SUCCESS | FAILED_PASSWORD | FAILED_2FA | BLOCKED_ATTEMPT | LOGOUT
+  reason     String   @default("")
+
+  @@index([timestamp])
+  @@index([status])
+}
+
+model BlockedIp {
+  id             String    @id @default(cuid())
+  ip             String    @unique
+  failedAttempts Int       @default(0)
+  blockedUntil   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+/* ------------------------------------------------------------
    أكاديمية الشروحات العملية — Tutorials Hub
    ------------------------------------------------------------ */
 model Tutorial {
