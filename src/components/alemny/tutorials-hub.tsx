@@ -15,14 +15,16 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
-import { TUTORIALS, type Tutorial } from "@/lib/alemny/tutorials";
+import { type Tutorial } from "@/lib/alemny/tutorials";
 import { SOCIALS } from "@/lib/alemny/constants";
+import { useAlemnyStore } from "@/lib/alemny/store";
 
 const TUTORIAL_ICONS = { notebook: NotebookPen, cursor: SquareTerminal, veo: Clapperboard } as const;
 
 export function TutorialsHub() {
-  const [activeId, setActiveId] = useState(TUTORIALS[0].id);
-  const tutorial = TUTORIALS.find((t) => t.id === activeId) ?? TUTORIALS[0];
+  const tutorials = useAlemnyStore((s) => s.tutorials);
+  const [activeId, setActiveId] = useState(tutorials[0].id);
+  const tutorial = tutorials.find((t) => t.id === activeId) ?? tutorials[0];
 
   return (
     <section id="tutorials" aria-label="أكاديمية الشروحات العملية" className="relative py-20 md:py-28">
@@ -37,7 +39,7 @@ export function TutorialsHub() {
 
         {/* اختيار الشرح */}
         <div className="mb-8 flex flex-wrap items-center justify-center gap-2.5" role="tablist" aria-label="اختر الشرح العملي">
-          {TUTORIALS.map((t) => {
+          {tutorials.map((t) => {
             const Icon = TUTORIAL_ICONS[t.icon];
             const active = t.id === activeId;
             return (
@@ -81,7 +83,7 @@ export function TutorialsHub() {
                   </div>
                 </div>
                 <a
-                  href={SOCIALS[0].url}
+                  href={tutorial.youtubeUrl ?? SOCIALS[0].url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-neon inline-flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3 text-[14px] font-bold text-white"

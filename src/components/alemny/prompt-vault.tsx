@@ -16,9 +16,9 @@ import {
 import { SectionHeading } from "./section-heading";
 import { PromptIconGlyph, ModelBadge } from "./icons";
 import { copyText } from "@/lib/alemny/clipboard";
-import { EVT_SET_PROMPT_TAB, type SectionId } from "@/lib/alemny/constants";
+import { EVT_SET_PROMPT_TAB } from "@/lib/alemny/constants";
+import { useAlemnyStore } from "@/lib/alemny/store";
 import {
-  MAGIC_PROMPTS,
   PROMPT_CATEGORIES,
   type MagicPrompt,
   type PromptCategoryId,
@@ -37,6 +37,7 @@ export function PromptVault() {
   const [tab, setTab] = useState<TabId>("all");
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const prompts = useAlemnyStore((s) => s.prompts);
 
   /* استقبال تصفية من البحث الشامل */
   useEffect(() => {
@@ -51,7 +52,7 @@ export function PromptVault() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return MAGIC_PROMPTS.filter((p) => {
+    return prompts.filter((p) => {
       const inTab = tab === "all" || p.category === tab;
       const inQuery =
         !q ||
@@ -60,7 +61,7 @@ export function PromptVault() {
         p.keywords.some((k) => k.toLowerCase().includes(q));
       return inTab && inQuery;
     });
-  }, [tab, query]);
+  }, [tab, query, prompts]);
 
   const visible = showAll ? filtered : filtered.slice(0, INITIAL_VISIBLE);
 
@@ -78,7 +79,7 @@ export function PromptVault() {
         {/* التبويبات */}
         <div className="mb-4 flex flex-wrap items-center justify-center gap-2" role="tablist" aria-label="تصفية البرومبتات حسب الفئة">
           {TABS.map((t) => {
-            const count = t.id === "all" ? MAGIC_PROMPTS.length : MAGIC_PROMPTS.filter((p) => p.category === t.id).length;
+            const count = t.id === "all" ? prompts.length : prompts.filter((p) => p.category === t.id).length;
             const activeTab = tab === t.id;
             return (
               <button
@@ -207,6 +208,8 @@ function PromptCard({ prompt }: { prompt: MagicPrompt }) {
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
+      /* عدّاد النسخ الحي — يُسجَّل فورًا في Neon PostgreSQL */
+      useAlemnyStore.getState().registerCopy(prompt.id);
       toast.success("تم نسخ البرومبت بنجاح! ✓", {
         description: "الصقه الآن في محادثة الذكاء الاصطناعي واحصل على نتيجتك.",
       });
@@ -309,7 +312,18 @@ function PromptCard({ prompt }: { prompt: MagicPrompt }) {
         ))}
       </div>
 
-      {/* زر النسخ */}
+      {/* عدّاد النسخ الحي + زر النسخ */}
+      {typeof prompt.copiesCount === "number" && (
+        <p className="mb-2.5 flex items-center justify-center gap-1.5 text-[11px] text-alemny-muted" aria-live="polite">
+          <Copy className="h-3 w-3 text-alemny-lilac" aria-hidden />
+          نُسخ هذا البرومبت
+          <span className="font-bold text-alemny-lilac">
+            {prompt.copiesCount.toLocaleString("ar-EG")}
+          </span>
+          مرة من قبل الطلاب والمطورين
+        </p>
+      )}
+
       <button
         type="button"
         onClick={onCopy}

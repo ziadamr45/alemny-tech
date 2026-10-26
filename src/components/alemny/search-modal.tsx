@@ -6,6 +6,7 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { Search, Sparkles, Wrench, GraduationCap, Youtube, AtSign, ArrowLeft, Mail } from "lucide-react";
 import { BRAND, SOCIALS } from "@/lib/alemny/constants";
 import { buildSearchIndex, filterSearchItems, type SearchItem, type SearchKind } from "@/lib/alemny/search";
+import { useAlemnyStore } from "@/lib/alemny/store";
 
 interface SearchModalProps {
   open: boolean;
@@ -21,7 +22,10 @@ const KIND_META: Record<SearchKind, { label: string; color: string }> = {
 
 export function SearchModal({ open, onOpenChange }: SearchModalProps) {
   const [query, setQuery] = useState("");
-  const index = useMemo(() => buildSearchIndex(), []);
+  const prompts = useAlemnyStore((s) => s.prompts);
+  const tools = useAlemnyStore((s) => s.tools);
+  const tutorials = useAlemnyStore((s) => s.tutorials);
+  const index = useMemo(() => buildSearchIndex(prompts, tools, tutorials), [prompts, tools, tutorials]);
   const results = useMemo(() => filterSearchItems(index, query), [index, query]);
 
   const grouped = useMemo(() => {

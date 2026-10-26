@@ -17,6 +17,8 @@ export interface Tutorial {
   icon: "notebook" | "cursor" | "veo";
   steps: TutorialStep[];
   keywords: string[];
+  /** Live from Neon — official channel link */
+  youtubeUrl?: string;
 }
 
 export const TUTORIALS: Tutorial[] = [

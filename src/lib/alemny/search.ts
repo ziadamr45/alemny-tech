@@ -5,6 +5,9 @@
 import { MAGIC_PROMPTS, PROMPT_CATEGORIES } from "./prompts";
 import { AI_TOOLS, TOOL_CATEGORIES } from "./tools";
 import { TUTORIALS } from "./tutorials";
+import type { MagicPrompt } from "./prompts";
+import type { AITool } from "./tools";
+import type { Tutorial } from "./tutorials";
 
 export type SearchKind = "prompt" | "tool" | "tutorial" | "action";
 
@@ -43,8 +46,12 @@ export function filterSearchItems(items: SearchItem[], query: string): SearchIte
   return items.filter((item) => matches(item, query));
 }
 
-export function buildSearchIndex(): SearchItem[] {
-  const prompts: SearchItem[] = MAGIC_PROMPTS.map((p) => ({
+export function buildSearchIndex(
+  prompts: MagicPrompt[] = MAGIC_PROMPTS,
+  tools: AITool[] = AI_TOOLS,
+  tutorials: Tutorial[] = TUTORIALS,
+): SearchItem[] {
+  const promptItems: SearchItem[] = prompts.map((p) => ({
     id: `prompt-${p.id}`,
     kind: "prompt" as const,
     title: p.title,
@@ -54,7 +61,7 @@ export function buildSearchIndex(): SearchItem[] {
     keywords: p.keywords,
   }));
 
-  const tools: SearchItem[] = AI_TOOLS.map((t) => ({
+  const toolItems: SearchItem[] = tools.map((t) => ({
     id: `tool-${t.id}`,
     kind: "tool" as const,
     title: `${t.name} — ${t.nameEn}`,
@@ -64,7 +71,7 @@ export function buildSearchIndex(): SearchItem[] {
     keywords: t.keywords,
   }));
 
-  const tutorials: SearchItem[] = TUTORIALS.map((t) => ({
+  const tutorialItems: SearchItem[] = tutorials.map((t) => ({
     id: `tutorial-${t.id}`,
     kind: "tutorial" as const,
     title: t.title,
@@ -73,5 +80,5 @@ export function buildSearchIndex(): SearchItem[] {
     keywords: t.keywords,
   }));
 
-  return [...prompts, ...tools, ...tutorials];
+  return [...promptItems, ...toolItems, ...tutorialItems];
 }

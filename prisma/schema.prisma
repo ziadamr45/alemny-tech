@@ -1,32 +1,111 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+/* ============================================================
+   علَّمني تِك — Alemny Tech — Production Schema
+   Provider: Neon PostgreSQL  |  ORM: Prisma
+   All Arabic content collections of the platform live here.
+   ============================================================ */
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/* ------------------------------------------------------------
+   مكتبة البرومبتات السحرية — Magic Prompt Vault
+   ------------------------------------------------------------ */
+model Prompt {
+  id           String   @id @default(cuid())
+  slug         String   @unique // stable key, e.g. "master-mentor"
+  title        String
+  category     String // study | coding | design | productivity
+  targetModel  String // primary model shown on the badge
+  targetModels Json // full badge list (string[])
+  resultHook   String // the "what you get" hook line
+  promptText   String   @db.Text // the full engineered prompt body
+  variables    Json // [{ key, label, placeholder }]
+  icon         String // UI icon key
+  tips         Json // string[] pro tips
+  keywords     Json // string[] search keywords (ar/en)
+  ltr          Boolean  @default(false) // LTR rendering for latin-heavy prompts
+  copiesCount  Int      @default(0) // incremented on every «نسخ البرومبت»
+  featured     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([featured])
+  @@index([copiesCount])
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/* ------------------------------------------------------------
+   دليل أدوات الذكاء الاصطناعي ٢٠٢٦ — AI Tools Directory
+   ------------------------------------------------------------ */
+model AiTool {
+  id          String   @id @default(cuid())
+  slug        String   @unique // stable key, e.g. "notebooklm"
+  name        String // English display name ("Gemini Notebook")
+  arabicTitle String // Arabic annotation
+  category    String // study | coding | design | media
+  pricingType String // free | freemium
+  description String   @db.Text // tagline
+  officialUrl String // verified official link
+  badge       String? // highlight badge ("الأقوى للمذاكرة")
+  features    Json // string[] feature list
+  useCase     String   @db.Text // recommended workflow
+  icon        String // UI icon key
+  keywords    Json // string[] search keywords
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([pricingType])
+}
+
+/* ------------------------------------------------------------
+   حلبة المواجهة Versus — Gemini vs Claude 5.5 vs ChatGPT
+   ------------------------------------------------------------ */
+model VersusMission {
+  id              String   @id @default(cuid())
+  slug            String   @unique // stable key, e.g. "study"
+  number          String // Arabic-Indic ordinal ("١")
+  title           String
+  shortTitle      String
+  icon            String // book | code | pen | mic
+  description     String   @db.Text
+  scenario        String   @db.Text // the real-world test scenario
+  geminiScore     Int // 0-100
+  claudeScore     Int
+  chatgptScore    Int
+  winner          String // gemini | claude | chatgpt
+  summary         String   @db.Text // the verdict
+  challengePrompt String   @db.Text // unified challenge prompt (copy-ready)
+  workflow        Json // string[] recommended workflow steps
+  models          Json // full scorecards: [{ id, score, pros[], cons[] }]
+  keywords        Json // string[] search keywords
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([winner])
+}
+
+/* ------------------------------------------------------------
+   أكاديمية الشروحات العملية — Tutorials Hub
+   ------------------------------------------------------------ */
+model Tutorial {
+  id         String   @id @default(cuid())
+  slug       String   @unique // stable key, e.g. "notebook-mastery"
+  title      String
+  summary    String   @db.Text // subtitle
+  level      String // مبتدئ | متوسط | مبتدئ → متوسط
+  duration   String // "١٢ دقيقة"
+  icon       String // notebook | cursor | veo
+  steps      Json // [{ title, desc, tip }]
+  youtubeUrl String // official channel / walkthrough link
+  keywords   Json // string[] search keywords
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

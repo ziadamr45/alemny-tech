@@ -30,12 +30,27 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit secrets (DATABASE_URL, tokens)
 .env*
+*.env
 
 # vercel
 .vercel
 
+# local sqlite dev database
+/db/
+
+# sandbox-only runtime & tooling (not part of the product)
+.zscripts/
+/examples/
+/mini-services/
+/tests/
+/Caddyfile
+/upload/
+/download/
+
+# internal agent worklog
+worklog.md
 
 # typescript
 *.tsbuildinfo

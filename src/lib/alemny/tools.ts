@@ -37,6 +37,8 @@ export interface AITool {
   useCase: string;
   icon: ToolIcon;
   keywords: string[];
+  /** Live from Neon — editorial highlight badge */
+  badge?: string;
 }
 
 export const AI_TOOLS: AITool[] = [

@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BadgeCheck, Search, ExternalLink, Check, Target, Gift, SearchX } from "lucide-react";
+import { BadgeCheck, Search, ExternalLink, Check, Target, Gift, SearchX, Sparkles } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { ToolIconGlyph } from "./icons";
 import { EVT_SET_TOOL_FILTER } from "@/lib/alemny/constants";
+import { useAlemnyStore } from "@/lib/alemny/store";
 import {
-  AI_TOOLS,
   TOOL_CATEGORIES,
   TOOL_PRICING,
   type AITool,
@@ -22,6 +22,7 @@ export function ToolsDirectory() {
   const [cat, setCat] = useState<CatFilter>("all");
   const [price, setPrice] = useState<PriceFilter>("all");
   const [query, setQuery] = useState("");
+  const tools = useAlemnyStore((s) => s.tools);
 
   /* استقبال تصفية من البحث الشامل */
   useEffect(() => {
@@ -35,7 +36,7 @@ export function ToolsDirectory() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return AI_TOOLS.filter((t) => {
+    return tools.filter((t) => {
       const inCat = cat === "all" || t.category === cat;
       const inPrice = price === "all" || t.pricing === price;
       const inQuery =
@@ -46,7 +47,7 @@ export function ToolsDirectory() {
         t.keywords.some((k) => k.toLowerCase().includes(q));
       return inCat && inPrice && inQuery;
     });
-  }, [cat, price, query]);
+  }, [cat, price, query, tools]);
 
   const resetAll = () => {
     setCat("all");
@@ -71,14 +72,14 @@ export function ToolsDirectory() {
             {/* تصفية الفئات */}
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="تصفية حسب الفئة">
               <span className="ml-1 text-xs font-bold text-alemny-muted">الفئة:</span>
-              <FilterChip active={cat === "all"} onClick={() => setCat("all")} label="الكل" count={AI_TOOLS.length} />
+              <FilterChip active={cat === "all"} onClick={() => setCat("all")} label="الكل" count={tools.length} />
               {TOOL_CATEGORIES.map((c) => (
                 <FilterChip
                   key={c.id}
                   active={cat === c.id}
                   onClick={() => setCat(c.id)}
                   label={c.shortLabel}
-                  count={AI_TOOLS.filter((t) => t.category === c.id).length}
+                  count={tools.filter((t) => t.category === c.id).length}
                 />
               ))}
             </div>
@@ -113,7 +114,7 @@ export function ToolsDirectory() {
               />
             </div>
             <span className="hidden shrink-0 text-xs text-alemny-muted sm:block">
-              عرض <span className="font-bold text-white">{filtered.length}</span> من {AI_TOOLS.length} أدوات
+              عرض <span className="font-bold text-white">{filtered.length}</span> من {tools.length} أدوات
             </span>
           </div>
         </div>
@@ -197,6 +198,12 @@ function ToolCard({ tool }: { tool: AITool }) {
         <div className="min-w-0">
           <h3 className="text-[17px] font-bold leading-7 text-white">{tool.name}</h3>
           <p className="font-en text-[11.5px] tracking-wide text-alemny-muted">{tool.nameEn}</p>
+          {tool.badge && (
+            <span className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-alemny-amber/40 bg-alemny-amber/10 px-2 py-0.5 text-[10px] font-bold text-alemny-amber">
+              <Sparkles className="h-3 w-3" aria-hidden />
+              {tool.badge}
+            </span>
+          )}
         </div>
       </div>
 

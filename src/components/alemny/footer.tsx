@@ -5,9 +5,19 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlemnyLogo, PlatformIcon } from "./logo";
 import { BRAND, NAV_LINKS, SOCIALS } from "@/lib/alemny/constants";
+import { useAlemnyStore } from "@/lib/alemny/store";
 
 export function CommunityFooter() {
   const year = "٢٠٢٦";
+  const source = useAlemnyStore((s) => s.source);
+  const hydrated = useAlemnyStore((s) => s.hydrated);
+  const hydrating = useAlemnyStore((s) => s.hydrating);
+
+  const dbLabel = hydrating
+    ? "جارٍ الاتصال بقاعدة بيانات Neon…"
+    : hydrated && source === "database"
+      ? "المحتوى مباشر الآن من قاعدة بيانات Neon PostgreSQL"
+      : "الوضع الاحتياطي السريع — يعمل ببيانات المنصة المحلية";
 
   return (
     <footer className="relative mt-auto border-t border-alemny-purple/25 bg-[#060409]/95 pb-8 pt-14" aria-label="تذييل المنصة والتواصل الرسمي">
@@ -86,6 +96,21 @@ export function CommunityFooter() {
           <p className="text-[12.5px] text-alemny-muted">
             © {year} <span className="font-bold text-white">{BRAND.ar}</span> — جميع الحقوق محفوظة
           </p>
+          <span
+            className="glass-soft inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-bold text-alemny-muted"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              aria-hidden
+              className={`h-2 w-2 rounded-full ${
+                hydrated && source === "database"
+                  ? "animate-pulse bg-alemny-emerald shadow-[0_0_10px_rgba(52,211,153,0.9)]"
+                  : "bg-alemny-purple shadow-[0_0_8px_rgba(128,70,233,0.8)]"
+              }`}
+            />
+            {dbLabel}
+          </span>
           <p className="flex items-center gap-1.5 text-[12.5px] text-alemny-muted">
             صُنع بشغف لجيل التقنية العربية
             <Heart className="h-3.5 w-3.5 fill-alemny-purple text-alemny-purple" aria-hidden />

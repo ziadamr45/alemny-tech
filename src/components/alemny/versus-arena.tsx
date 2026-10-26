@@ -19,15 +19,17 @@ import {
 } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { copyText } from "@/lib/alemny/clipboard";
-import { ARENA_MODELS_META, VERSUS_MISSIONS, buildChallengePrompt, type VersusMission } from "@/lib/alemny/versus";
+import { ARENA_MODELS_META, type VersusMission } from "@/lib/alemny/versus";
+import { missionChallengePrompt, useAlemnyStore } from "@/lib/alemny/store";
 
 const MISSION_ICONS = { book: BookOpen, code: Code2, pen: PenLine, mic: Mic } as const;
 
 export function VersusArena() {
-  const [missionId, setMissionId] = useState(VERSUS_MISSIONS[0].id);
+  const missions = useAlemnyStore((s) => s.missions);
+  const [missionId, setMissionId] = useState(missions[0].id);
   const mission = useMemo(
-    () => VERSUS_MISSIONS.find((m) => m.id === missionId) ?? VERSUS_MISSIONS[0],
-    [missionId]
+    () => missions.find((m) => m.id === missionId) ?? missions[0],
+    [missionId, missions]
   );
 
   return (
@@ -43,7 +45,7 @@ export function VersusArena() {
 
         {/* بطاقات المهام */}
         <div className="mb-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="اختر مهمة المواجهة">
-          {VERSUS_MISSIONS.map((m) => {
+          {missions.map((m) => {
             const Icon = MISSION_ICONS[m.icon];
             const active = m.id === missionId;
             return (
@@ -203,7 +205,7 @@ function ModelPanel({ model, isWinner, delay }: { model: VersusMission["models"]
 
 function ChallengePromptBox({ mission }: { mission: VersusMission }) {
   const [copied, setCopied] = useState(false);
-  const prompt = useMemo(() => buildChallengePrompt(mission), [mission]);
+  const prompt = useMemo(() => missionChallengePrompt(mission), [mission]);
 
   const onCopy = async () => {
     const ok = await copyText(prompt);

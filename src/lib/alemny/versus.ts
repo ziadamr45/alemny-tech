@@ -27,6 +27,8 @@ export interface VersusMission {
   workflow: string[];
   models: ArenaModel[];
   keywords: string[];
+  /** Live from Neon — unified challenge prompt (copy-ready) */
+  challengePrompt?: string;
 }
 
 export const ARENA_MODELS_META: Record<ArenaModelId, { name: string; nameEn: string; color: string }> = {

@@ -50,6 +50,8 @@ export interface MagicPrompt {
   tips: string[];
   ltr?: boolean;
   keywords: string[];
+  /** Live from Neon — number of times this prompt was copied */
+  copiesCount?: number;
 }
 
 export const MAGIC_PROMPTS: MagicPrompt[] = [
